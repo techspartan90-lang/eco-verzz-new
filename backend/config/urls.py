@@ -19,7 +19,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     path("api/auth/", include("authentication.urls")),
-    path("api/waste/", include("waste.urls")),   # <-- ADD THIS
+    path("api/waste/", include("waste.urls")),
+    path("api/food/", include("food.urls")),
 
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
 
