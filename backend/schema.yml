@@ -1,0 +1,1369 @@
+openapi: 3.0.3
+info:
+  title: Eco Verzz API
+  version: 1.0.0
+  description: AI Powered Environmental Operating System
+paths:
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Login'
+          description: ''
+  /api/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Logout'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Logout'
+          description: ''
+  /api/auth/password-reset/:
+    post:
+      operationId: auth_password_reset_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetRequest'
+          description: ''
+  /api/auth/password-reset-confirm/:
+    post:
+      operationId: auth_password_reset_confirm_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetConfirm'
+          description: ''
+  /api/auth/profile/:
+    get:
+      operationId: auth_profile_retrieve
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+    put:
+      operationId: auth_profile_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Profile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+    patch:
+      operationId: auth_profile_partial_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfile'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Register'
+          description: ''
+  /api/auth/token/refresh/:
+    post:
+      operationId: auth_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/auth/verify-email/:
+    get:
+      operationId: auth_verify_email_retrieve
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailVerification'
+          description: ''
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - ht
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/waste/reports/:
+    get:
+      operationId: waste_reports_list
+      tags:
+      - waste
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WasteReport'
+          description: ''
+    post:
+      operationId: waste_reports_create
+      tags:
+      - waste
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WasteReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WasteReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WasteReport'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WasteReport'
+          description: ''
+  /api/waste/reports/{id}/:
+    get:
+      operationId: waste_reports_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WasteReport'
+          description: ''
+    put:
+      operationId: waste_reports_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WasteReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WasteReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WasteReport'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WasteReport'
+          description: ''
+    patch:
+      operationId: waste_reports_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWasteReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWasteReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWasteReport'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WasteReport'
+          description: ''
+    delete:
+      operationId: waste_reports_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/waste/reports/{id}/assign_municipality/:
+    post:
+      operationId: waste_reports_assign_municipality_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MunicipalityAssignment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MunicipalityAssignment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MunicipalityAssignment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MunicipalityAssignment'
+          description: ''
+  /api/waste/reports/{id}/assign_volunteer/:
+    post:
+      operationId: waste_reports_assign_volunteer_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VolunteerAssignment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VolunteerAssignment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VolunteerAssignment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VolunteerAssignment'
+          description: ''
+  /api/waste/reports/{id}/comments/:
+    get:
+      operationId: waste_reports_comments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WasteReport'
+          description: ''
+    post:
+      operationId: waste_reports_comments_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WasteReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WasteReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WasteReport'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WasteReport'
+          description: ''
+  /api/waste/reports/{id}/complete_cleanup/:
+    post:
+      operationId: waste_reports_complete_cleanup_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteCleanup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CompleteCleanup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CompleteCleanup'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteCleanup'
+          description: ''
+  /api/waste/reports/{id}/rate/:
+    post:
+      operationId: waste_reports_rate_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this waste report.
+        required: true
+      tags:
+      - waste
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WasteReportRating'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WasteReportRating'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WasteReportRating'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WasteReportRating'
+          description: ''
+  /api/waste/reports/nearby/:
+    get:
+      operationId: waste_reports_nearby_retrieve
+      tags:
+      - waste
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WasteReport'
+          description: ''
+components:
+  schemas:
+    CategoryEnum:
+      enum:
+      - PLASTIC
+      - PAPER
+      - METAL
+      - GLASS
+      - ORGANIC
+      - E_WASTE
+      - OTHER
+      type: string
+      description: |-
+        * `PLASTIC` - Plastic
+        * `PAPER` - Paper
+        * `METAL` - Metal
+        * `GLASS` - Glass
+        * `ORGANIC` - Organic
+        * `E_WASTE` - E-Waste
+        * `OTHER` - Other
+    CompleteCleanup:
+      type: object
+      properties:
+        after_image:
+          type: string
+          format: uri
+        notes:
+          type: string
+      required:
+      - after_image
+    EmailVerification:
+      type: object
+      properties:
+        uid:
+          type: string
+        token:
+          type: string
+      required:
+      - token
+      - uid
+    Login:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - password
+      - username
+    Logout:
+      type: object
+      properties:
+        refresh:
+          type: string
+          description: The refresh token to blacklist
+      required:
+      - refresh
+    MunicipalityAssignment:
+      type: object
+      properties:
+        municipality_id:
+          type: integer
+        notes:
+          type: string
+      required:
+      - municipality_id
+    PasswordResetConfirm:
+      type: object
+      properties:
+        uid:
+          type: string
+        token:
+          type: string
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 8
+      required:
+      - new_password
+      - token
+      - uid
+    PasswordResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    PatchedProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+        full_name:
+          type: string
+          maxLength: 255
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        profile_image:
+          type: string
+          format: uri
+          nullable: true
+        address:
+          type: string
+        city:
+          type: string
+          maxLength: 100
+        state:
+          type: string
+          maxLength: 100
+        country:
+          type: string
+          maxLength: 100
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        reward_points:
+          type: integer
+          readOnly: true
+        carbon_score:
+          type: number
+          format: double
+          readOnly: true
+        achievements:
+          readOnly: true
+        is_verified:
+          type: boolean
+          readOnly: true
+    PatchedWasteReport:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        user_username:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        location:
+          type: string
+          maxLength: 255
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+        image:
+          type: string
+          format: uri
+          nullable: true
+        before_image:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        after_image:
+          type: string
+          format: uri
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        assigned_municipality:
+          type: integer
+          readOnly: true
+          nullable: true
+        assigned_municipality_username:
+          type: string
+          readOnly: true
+        assigned_volunteer:
+          type: integer
+          readOnly: true
+          nullable: true
+        assigned_volunteer_username:
+          type: string
+          readOnly: true
+        ai_metadata:
+          readOnly: true
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/WasteReportTimeline'
+          readOnly: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/WasteReportComment'
+          readOnly: true
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/WasteReportRating'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PriorityEnum:
+      enum:
+      - LOW
+      - MEDIUM
+      - HIGH
+      - CRITICAL
+      type: string
+      description: |-
+        * `LOW` - Low
+        * `MEDIUM` - Medium
+        * `HIGH` - High
+        * `CRITICAL` - Critical
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+        full_name:
+          type: string
+          maxLength: 255
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        profile_image:
+          type: string
+          format: uri
+          nullable: true
+        address:
+          type: string
+        city:
+          type: string
+          maxLength: 100
+        state:
+          type: string
+          maxLength: 100
+        country:
+          type: string
+          maxLength: 100
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        reward_points:
+          type: integer
+          readOnly: true
+        carbon_score:
+          type: number
+          format: double
+          readOnly: true
+        achievements:
+          readOnly: true
+        is_verified:
+          type: boolean
+          readOnly: true
+      required:
+      - achievements
+      - carbon_score
+      - email
+      - id
+      - is_verified
+      - reward_points
+      - role
+      - username
+    Register:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          title: Email address
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        full_name:
+          type: string
+          maxLength: 255
+        phone:
+          type: string
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        address:
+          type: string
+        city:
+          type: string
+          maxLength: 100
+        state:
+          type: string
+          maxLength: 100
+        country:
+          type: string
+          maxLength: 100
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+      required:
+      - password
+      - username
+    RoleEnum:
+      enum:
+      - ADMIN
+      - MUNICIPALITY
+      - CITIZEN
+      - NGO
+      - RESTAURANT
+      - VOLUNTEER
+      - RECYCLER
+      - VENDOR
+      type: string
+      description: |-
+        * `ADMIN` - Admin
+        * `MUNICIPALITY` - Municipality
+        * `CITIZEN` - Citizen
+        * `NGO` - NGO
+        * `RESTAURANT` - Restaurant
+        * `VOLUNTEER` - Volunteer
+        * `RECYCLER` - Recycler
+        * `VENDOR` - Vendor
+    StatusEnum:
+      enum:
+      - PENDING
+      - ASSIGNED
+      - COLLECTED
+      - COMPLETED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `ASSIGNED` - Assigned
+        * `COLLECTED` - Collected
+        * `COMPLETED` - Completed
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    VolunteerAssignment:
+      type: object
+      properties:
+        volunteer_id:
+          type: integer
+        notes:
+          type: string
+      required:
+      - volunteer_id
+    WasteReport:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        user_username:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        location:
+          type: string
+          maxLength: 255
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+        image:
+          type: string
+          format: uri
+          nullable: true
+        before_image:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        after_image:
+          type: string
+          format: uri
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        assigned_municipality:
+          type: integer
+          readOnly: true
+          nullable: true
+        assigned_municipality_username:
+          type: string
+          readOnly: true
+        assigned_volunteer:
+          type: integer
+          readOnly: true
+          nullable: true
+        assigned_volunteer_username:
+          type: string
+          readOnly: true
+        ai_metadata:
+          readOnly: true
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/WasteReportTimeline'
+          readOnly: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/WasteReportComment'
+          readOnly: true
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/WasteReportRating'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - ai_metadata
+      - assigned_municipality
+      - assigned_municipality_username
+      - assigned_volunteer
+      - assigned_volunteer_username
+      - before_image
+      - category
+      - comments
+      - created_at
+      - description
+      - id
+      - latitude
+      - location
+      - longitude
+      - rating
+      - status
+      - timeline
+      - title
+      - updated_at
+      - user
+      - user_username
+    WasteReportComment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - id
+      - user
+      - username
+    WasteReportRating:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        citizen:
+          type: integer
+          readOnly: true
+        citizen_username:
+          type: string
+          readOnly: true
+        rating:
+          type: integer
+        feedback:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - citizen
+      - citizen_username
+      - created_at
+      - id
+      - rating
+    WasteReportTimeline:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        changed_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        changed_by_username:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - changed_by
+      - changed_by_username
+      - created_at
+      - id
+      - status
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
