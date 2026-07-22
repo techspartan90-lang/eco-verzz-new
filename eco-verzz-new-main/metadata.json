@@ -1,0 +1,6 @@
+{
+  "name": "EcoVerzz",
+  "description": "Transforming Awareness into Action - The world's first AI-powered Gamified Sustainability Onboarding experience.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
