@@ -40,6 +40,8 @@ coverage/
 .env.development.local
 .env.test.local
 .env.production.local
+.env*
+!.env.example
 *.log
 
 # OS files
@@ -54,3 +56,4 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
