@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Leaf, Mail, Lock, Shield, ArrowRight, User } from "lucide-react";
 import { audioEngine } from "./AudioEngine";
 import { UserProfile } from "../types";
+import { api } from "../services/api";
 
 interface AuthScreenProps {
   onSuccess: (profile: UserProfile) => void;
@@ -61,7 +62,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
     }, 1200);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -81,21 +82,40 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
     setLoading(true);
     audioEngine.playTick();
 
-    setTimeout(() => {
-      const profile: UserProfile = {
-        username: isSignUp ? username.trim() : email.split("@")[0],
-        email: email.trim(),
-        ecoPoints: 0,
-        scannedItemsCount: 0,
-        rank: "Ecosystem Scout",
-        joinedAt: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
-      };
+    try {
+      let profile: UserProfile;
+      if (isSignUp) {
+        profile = await api.register({
+          username: username.trim(),
+          email: email.trim(),
+          password: password,
+          full_name: username.trim(),
+          role: "CITIZEN",
+        });
+      } else {
+        const loginUsername = email.includes("@") ? email.split("@")[0] : email;
+        profile = await api.login(loginUsername.trim(), password);
+      }
 
-      localStorage.setItem("ecoverzz_profile", JSON.stringify(profile));
       setLoading(false);
       audioEngine.playSuccessChime();
       onSuccess(profile);
-    }, 1600);
+    } catch (err: any) {
+      setLoading(false);
+      let errMsg = "Authentication node synchronization failed.";
+      if (err && typeof err === "object") {
+        if (err.detail) {
+          errMsg = err.detail;
+        } else {
+          // Flatten nested serializer errors if present
+          const keys = Object.keys(err);
+          if (keys.length > 0) {
+            errMsg = `${keys[0]}: ${err[keys[0]]}`;
+          }
+        }
+      }
+      setError(errMsg);
+    }
   };
 
   return (

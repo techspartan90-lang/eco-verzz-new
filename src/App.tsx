@@ -6,6 +6,7 @@ import EarthVisualizer from "./components/EarthVisualizer";
 import AuthScreen from "./components/AuthScreen";
 import { Dashboard } from "./components/Dashboard";
 import { audioEngine } from "./components/AudioEngine";
+import { api } from "./services/api";
 import { 
   Volume2, VolumeX, ArrowRight, Leaf, Sparkles, 
   Shield, LogOut, CheckCircle, Heart
@@ -123,7 +124,7 @@ export default function App() {
 
   // Handle logout/reset
   const handleLogout = () => {
-    localStorage.removeItem("ecoverzz_profile");
+    api.logout();
     setProfile(null);
     setHealingStage(0);
     setCelebrationStep(0);
