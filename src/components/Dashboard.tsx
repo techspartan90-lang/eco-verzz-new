@@ -11,6 +11,7 @@ import {
 import { audioEngine } from "./AudioEngine";
 import { UserProfile } from "../types";
 import { EarthVisualizer } from "./EarthVisualizer";
+import { api } from "../services/api";
 
 interface DashboardProps {
   profile: UserProfile;
@@ -81,6 +82,97 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
   const [level, setLevel] = useState(3);
   const [streak, setStreak] = useState(7);
   const [streakActive, setStreakActive] = useState(true);
+
+  // Live Data States
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  
+  const [foodDonations, setFoodDonations] = useState<any[]>([]);
+  const [showNewDonationModal, setShowNewDonationModal] = useState(false);
+  const [newDonationTitle, setNewDonationTitle] = useState("");
+  const [newDonationDesc, setNewDonationDesc] = useState("");
+  const [newDonationType, setNewDonationType] = useState("COOKED");
+  const [newDonationQty, setNewDonationQty] = useState("");
+  const [newDonationQuality, setNewDonationQuality] = useState("GOOD");
+  const [newDonationAddress, setNewDonationAddress] = useState("");
+  const [newDonationHours, setNewDonationHours] = useState("24");
+  
+  const [wasteReports, setWasteReports] = useState<any[]>([]);
+  const [showNewReportModal, setShowNewReportModal] = useState(false);
+  const [newReportTitle, setNewReportTitle] = useState("");
+  const [newReportDesc, setNewReportDesc] = useState("");
+  const [newReportCategory, setNewReportCategory] = useState("PLASTIC");
+  const [newReportPriority, setNewReportPriority] = useState("MEDIUM");
+  const [newReportLocation, setNewReportLocation] = useState("");
+  const [newReportImage, setNewReportImage] = useState<File | null>(null);
+  
+  const [selectedReport, setSelectedReport] = useState<any | null>(null);
+  const [newComment, setNewComment] = useState("");
+  const [newRatingValue, setNewRatingValue] = useState(5);
+  const [newRatingFeedback, setNewRatingFeedback] = useState("");
+  
+  const [showCompleteCleanupModal, setShowCompleteCleanupModal] = useState(false);
+  const [cleanupAfterImage, setCleanupAfterImage] = useState<File | null>(null);
+  const [cleanupNotes, setCleanupNotes] = useState("");
+
+  const [activeReportFilter, setActiveReportFilter] = useState({ category: "", status: "", priority: "", search: "" });
+
+  // Load live user profile on mount
+  useEffect(() => {
+    const fetchLiveProfile = async () => {
+      try {
+        const liveProfile = await api.getProfile();
+        if (liveProfile) {
+          setEcoPoints(liveProfile.ecoPoints);
+          setXp(Math.round(liveProfile.scannedItemsCount * 10) % 1000);
+          setLevel(Math.floor((liveProfile.scannedItemsCount * 10) / 1000) + 1);
+        }
+      } catch (err) {
+        console.warn("Could not load live profile", err);
+      }
+    };
+    fetchLiveProfile();
+  }, []);
+
+  // Fetch food donations when on food_rescue tab
+  const fetchLiveDonations = async () => {
+    setLoading(true);
+    try {
+      const res = await api.getFoodDonations();
+      setFoodDonations(res);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeView === "food_rescue") {
+      fetchLiveDonations();
+    }
+  }, [activeView]);
+
+  // Fetch waste reports when on waste_reports tab
+  const fetchLiveReports = async () => {
+    setLoading(true);
+    try {
+      const res = await api.getWasteReports(activeReportFilter);
+      setWasteReports(res);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeView === "waste_reports") {
+      fetchLiveReports();
+    }
+  }, [activeView, activeReportFilter]);
+
 
   // Community Feed
   const [socialPosts, setSocialPosts] = useState([
@@ -288,27 +380,194 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
     }
   };
 
-  // Food Rescue item claimer
-  const performFoodRescue = (itemName: string, itemId: string, e: React.MouseEvent) => {
+  // Food Rescue item claimer (live integration)
+  const handleClaimFoodDonation = async (id: string, title: string, e: React.MouseEvent) => {
     audioEngine.playSuccessChime();
-    setRescuedItems(prev => [...prev, itemId]);
-    triggerPointsFloater("+150 EcoPoints", e);
-    setEcoPoints(prev => prev + 150);
-    setXp(prev => {
-      const nextXp = prev + 200;
-      if (nextXp >= 1000) {
-        setLevel(l => l + 1);
-        return nextXp - 1000;
+    try {
+      await api.claimFoodDonation(id, "Claimed via EcoVerzz Dashboard.");
+      triggerPointsFloater("+150 EcoPoints", e);
+      setEcoPoints(prev => prev + 150);
+      setXp(prev => {
+        const nextXp = prev + 200;
+        if (nextXp >= 1000) {
+          setLevel(l => l + 1);
+          return nextXp - 1000;
+        }
+        return nextXp;
+      });
+      if (missionProgress < 2) {
+        setMissionProgress(p => p + 1);
       }
-      return nextXp;
-    });
-    if (missionProgress < 2) {
-      setMissionProgress(p => p + 1);
+      setNotifications(prev => [
+        { id: Date.now(), text: `Rescued ${title}! Claimed eco-balance certificate.`, read: false, time: "Just now" },
+        ...prev
+      ]);
+      fetchLiveDonations();
+    } catch (err: any) {
+      alert("Claim failed: " + (err.detail || "Only NGO users are allowed to claim food donations. Please check your user role."));
     }
-    setNotifications(prev => [
-      { id: Date.now(), text: `Rescued ${itemName}! Claimed eco-balance certificate.`, read: false, time: "Just now" },
-      ...prev
-    ]);
+  };
+
+  // Submit Food Donation
+  const submitFoodDonation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDonationTitle.trim() || !newDonationQty.trim() || !newDonationAddress.trim()) return;
+
+    setLoading(true);
+    try {
+      const expirationDate = new Date(Date.now() + parseFloat(newDonationHours) * 3600 * 1000).toISOString();
+      await api.createFoodDonation({
+        title: newDonationTitle,
+        description: newDonationDesc,
+        food_type: newDonationType,
+        quantity: newDonationQty,
+        quality_status: newDonationQuality,
+        expiry_time: expirationDate,
+        pickup_address: newDonationAddress,
+        latitude: 12.971598, // default coords
+        longitude: 77.594562
+      });
+      audioEngine.playSuccessChime();
+      triggerPointsFloater("Donation Listed! 🥗");
+      setShowNewDonationModal(false);
+      setNewDonationTitle("");
+      setNewDonationDesc("");
+      setNewDonationQty("");
+      setNewDonationAddress("");
+      fetchLiveDonations();
+    } catch (err: any) {
+      alert("Listing failed: " + JSON.stringify(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Submit Waste Report (Multipart)
+  const submitWasteReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReportTitle.trim() || !newReportLocation.trim()) return;
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", newReportTitle);
+      formData.append("description", newReportDesc);
+      formData.append("category", newReportCategory);
+      formData.append("priority", newReportPriority);
+      formData.append("location", newReportLocation);
+      formData.append("latitude", "12.971598"); // default coords
+      formData.append("longitude", "77.594562");
+      if (newReportImage) {
+        formData.append("image", newReportImage);
+      }
+
+      await api.createWasteReport(formData);
+      audioEngine.playSuccessChime();
+      triggerPointsFloater("Waste Logged! ♻️");
+      setShowNewReportModal(false);
+      setNewReportTitle("");
+      setNewReportDesc("");
+      setNewReportLocation("");
+      setNewReportImage(null);
+      fetchLiveReports();
+    } catch (err: any) {
+      alert("Failed to file report: " + JSON.stringify(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Submit Comment on Waste Report
+  const submitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim() || !selectedReport) return;
+
+    try {
+      const res = await api.createWasteReportComment(selectedReport.id, newComment);
+      audioEngine.playSuccessChime();
+      setSelectedReport(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          comments: [...(prev.comments || []), res]
+        };
+      });
+      setNewComment("");
+      fetchLiveReports();
+    } catch (err: any) {
+      alert("Comment failed: " + JSON.stringify(err));
+    }
+  };
+
+  // Submit Rating on completed cleanup
+  const submitRating = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedReport) return;
+
+    try {
+      const res = await api.rateWasteReportCleanup(selectedReport.id, newRatingValue, newRatingFeedback);
+      audioEngine.playSuccessChime();
+      setSelectedReport(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          rating: res
+        };
+      });
+      setNewRatingFeedback("");
+      fetchLiveReports();
+    } catch (err: any) {
+      alert("Rating failed: " + (err.detail || "You have already rated or are not the reporter."));
+    }
+  };
+
+  // Complete cleanup (Volunteer/Municipality action)
+  const submitCompleteCleanup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedReport || !cleanupAfterImage) return;
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("after_image", cleanupAfterImage);
+      formData.append("notes", cleanupNotes);
+
+      const res = await api.completeWasteCleanup(selectedReport.id, formData);
+      audioEngine.playSuccessChime();
+      triggerPointsFloater("Cleanup complete!", undefined);
+      setShowCompleteCleanupModal(false);
+      setCleanupAfterImage(null);
+      setCleanupNotes("");
+      
+      // Update local detailed popup
+      setSelectedReport(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          status: "COMPLETED",
+          after_image: res.after_image || null
+        };
+      });
+      
+      fetchLiveReports();
+    } catch (err: any) {
+      alert("Cleanup completion failed: " + JSON.stringify(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete Waste Report (Citizen/Staff action)
+  const deleteWasteReport = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this report?")) return;
+    try {
+      await api.deleteWasteReport(id);
+      audioEngine.playTick();
+      setSelectedReport(null);
+      fetchLiveReports();
+    } catch (err: any) {
+      alert("Deletion failed: " + (err.detail || "You are not authorized to delete this report."));
+    }
   };
 
   // Marketplace Buy
@@ -564,6 +823,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
               { id: "ai_scan", label: "AI Scan", icon: Camera },
               { id: "marketplace", label: "Circular Exchange", icon: ShoppingBag },
               { id: "food_rescue", label: "Food Rescue", icon: Leaf },
+              { id: "waste_reports", label: "Waste Reports", icon: Trash2 },
               { id: "awareness", label: "Environmental Intel", icon: Globe },
               { id: "missions", label: "Missions", icon: Trophy },
               { id: "eco_social", label: "Eco Community", icon: Users },
@@ -615,6 +875,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
           { id: "home", icon: Home },
           { id: "ai_scan", icon: Camera },
           { id: "marketplace", icon: ShoppingBag },
+          { id: "waste_reports", icon: Trash2 },
           { id: "passport", icon: Award },
           { id: "eco_ai", icon: MessageSquare }
         ].map(item => {
@@ -967,43 +1228,185 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
                   exit={{ opacity: 0 }}
                   className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-left space-y-4"
                 >
-                  <div className="flex items-center gap-2 border-b border-white/5 pb-3">
-                    <Leaf className="w-5 h-5 text-emerald-400" />
-                    <h3 className="text-sm font-black uppercase tracking-wider font-mono">Food Rescue Ledger</h3>
+                  <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Leaf className="w-5 h-5 text-emerald-400" />
+                      <h3 className="text-sm font-black uppercase tracking-wider font-mono">Food Rescue Ledger</h3>
+                    </div>
+                    <button 
+                      onClick={() => { audioEngine.playTick(); setShowNewDonationModal(true); }}
+                      className="py-1.5 px-3 bg-emerald-500 text-gray-950 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      + Post Donation
+                    </button>
                   </div>
 
-                  <div className="space-y-3">
-                    {[
-                      { id: "f1", name: "The Green Grocer", item: "3x Organic Salad Bowls", distance: "0.4 miles away", co2: "1.2kg saved" },
-                      { id: "f2", name: "Artisan Cafe", item: "2x Fresh Sourdough Loaves", distance: "0.9 miles away", co2: "1.8kg saved" },
-                      { id: "f3", name: "Bistro Green", item: "1x Vegan Curry Meal", distance: "1.5 miles away", co2: "2.1kg saved" }
-                    ].map(item => {
-                      const isRescued = rescuedItems.includes(item.id);
-                      return (
-                        <div key={item.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                          <div>
-                            <span className="text-[10px] text-emerald-400 font-mono uppercase font-bold">{item.name}</span>
-                            <h4 className="text-xs font-bold text-white mt-0.5">{item.item}</h4>
-                            <div className="flex gap-3 text-[9px] text-gray-400 font-mono mt-1">
-                              <span>📍 {item.distance}</span>
-                              <span className="text-emerald-400">♻️ {item.co2}</span>
+                  {loading ? (
+                    <div className="text-center py-8 text-xs text-gray-500 font-mono">Syncing Food Ledger...</div>
+                  ) : foodDonations.length === 0 ? (
+                    <div className="text-center py-8 text-xs text-gray-500 font-mono">No active food donations found. Be the first to donate!</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {foodDonations.map(donation => {
+                        const isClaimed = donation.status !== "PENDING";
+                        return (
+                          <div key={donation.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-emerald-400 font-mono uppercase font-bold">{donation.donor_username || "Pioneer Donor"}</span>
+                                <span className="text-[8px] bg-white/5 px-2 py-0.5 rounded-full text-gray-400 font-mono">{donation.food_type}</span>
+                                <span className="text-[8px] bg-white/5 px-2 py-0.5 rounded-full text-gray-400 font-mono">{donation.quality_status}</span>
+                              </div>
+                              <h4 className="text-xs font-bold text-white">{donation.title} ({donation.quantity})</h4>
+                              <p className="text-[11px] text-gray-400 font-light">{donation.description}</p>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[9px] text-gray-500 font-mono">
+                                <span>📍 {donation.pickup_address}</span>
+                                <span className="text-amber-500/80">⏳ Exp: {new Date(donation.expiry_time).toLocaleString()}</span>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={(e) => handleClaimFoodDonation(donation.id, donation.title, e)}
+                              disabled={isClaimed}
+                              className={`py-2 px-4 rounded-xl text-xs uppercase font-bold tracking-wider transition-all cursor-pointer ${
+                                isClaimed 
+                                  ? "bg-white/5 text-gray-500 border border-white/5" 
+                                  : "bg-emerald-500 text-gray-950 hover:bg-emerald-400"
+                              }`}
+                            >
+                              {isClaimed ? `Claimed by ${donation.assigned_ngo_username || "NGO"}` : "Rescue Meal"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* WASTE REPORTS VIEW */}
+              {activeView === "waste_reports" && (
+                <motion.div
+                  key="view-waste"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-left space-y-4"
+                >
+                  <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Trash2 className="w-5 h-5 text-teal-400" />
+                      <h3 className="text-sm font-black uppercase tracking-wider font-mono">Waste Report Ledger</h3>
+                    </div>
+                    <button 
+                      onClick={() => { audioEngine.playTick(); setShowNewReportModal(true); }}
+                      className="py-1.5 px-3 bg-teal-500 text-gray-950 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      + File Report
+                    </button>
+                  </div>
+
+                  {/* Filters bar */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white/[0.01] p-3 rounded-2xl border border-white/5">
+                    <select
+                      value={activeReportFilter.category}
+                      onChange={(e) => setActiveReportFilter(prev => ({ ...prev, category: e.target.value }))}
+                      className="bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-[11px] text-white outline-none"
+                    >
+                      <option value="">All Categories</option>
+                      <option value="PLASTIC">Plastic</option>
+                      <option value="PAPER">Paper</option>
+                      <option value="METAL">Metal</option>
+                      <option value="GLASS">Glass</option>
+                      <option value="ORGANIC">Organic</option>
+                      <option value="E_WASTE">E-Waste</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+
+                    <select
+                      value={activeReportFilter.status}
+                      onChange={(e) => setActiveReportFilter(prev => ({ ...prev, status: e.target.value }))}
+                      className="bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-[11px] text-white outline-none"
+                    >
+                      <option value="">All Statuses</option>
+                      <option value="PENDING">Pending</option>
+                      <option value="ASSIGNED">Assigned</option>
+                      <option value="COLLECTED">Collected</option>
+                      <option value="COMPLETED">Completed</option>
+                    </select>
+
+                    <select
+                      value={activeReportFilter.priority}
+                      onChange={(e) => setActiveReportFilter(prev => ({ ...prev, priority: e.target.value }))}
+                      className="bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-[11px] text-white outline-none"
+                    >
+                      <option value="">All Priorities</option>
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
+                      <option value="CRITICAL">Critical</option>
+                    </select>
+
+                    <input
+                      type="text"
+                      placeholder="Search reports..."
+                      value={activeReportFilter.search}
+                      onChange={(e) => setActiveReportFilter(prev => ({ ...prev, search: e.target.value }))}
+                      className="bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-[11px] text-white outline-none"
+                    />
+                  </div>
+
+                  {loading ? (
+                    <div className="text-center py-8 text-xs text-gray-500 font-mono">Syncing Waste Ledger...</div>
+                  ) : wasteReports.length === 0 ? (
+                    <div className="text-center py-8 text-xs text-gray-500 font-mono">No matching waste reports found.</div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {wasteReports.map(report => {
+                        const imageSrc = report.image 
+                          ? (report.image.startsWith("http") ? report.image : `http://localhost:8000${report.image}`)
+                          : null;
+                        return (
+                          <div 
+                            key={report.id} 
+                            onClick={() => { audioEngine.playTick(); setSelectedReport(report); }}
+                            className="bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 rounded-2xl overflow-hidden cursor-pointer transition-all flex flex-col justify-between text-left"
+                          >
+                            {imageSrc && (
+                              <div className="h-32 w-full overflow-hidden relative">
+                                <img src={imageSrc} alt={report.title} className="w-full h-full object-cover" />
+                                <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md text-[8px] text-teal-400 font-mono">
+                                  {report.category}
+                                </div>
+                              </div>
+                            )}
+                            <div className="p-3.5 space-y-1.5 flex-grow">
+                              <h4 className="text-xs font-bold text-white line-clamp-1">{report.title}</h4>
+                              <p className="text-[10px] text-gray-400 line-clamp-2 font-light">{report.description}</p>
+                              <div className="flex justify-between items-center text-[8px] font-mono mt-1">
+                                <span className={`px-2 py-0.5 rounded-full ${
+                                  report.status === "PENDING" ? "bg-amber-500/10 text-amber-400" :
+                                  report.status === "ASSIGNED" ? "bg-blue-500/10 text-blue-400" :
+                                  "bg-emerald-500/10 text-emerald-400"
+                                }`}>
+                                  {report.status}
+                                </span>
+                                <span className={`px-2 py-0.5 rounded-full ${
+                                  report.priority === "CRITICAL" ? "bg-red-500/20 text-red-400 font-black" :
+                                  report.priority === "HIGH" ? "bg-orange-500/15 text-orange-400" :
+                                  "bg-gray-500/10 text-gray-400"
+                                }`}>
+                                  {report.priority}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="px-3.5 py-2 border-t border-white/5 text-[9px] text-gray-500 font-mono truncate">
+                              📍 {report.location}
                             </div>
                           </div>
-                          <button 
-                            onClick={(e) => performFoodRescue(item.item, item.id, e)}
-                            disabled={isRescued}
-                            className={`py-2 px-4 rounded-xl text-xs uppercase font-bold tracking-wider transition-all cursor-pointer ${
-                              isRescued 
-                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-                                : "bg-emerald-500 text-gray-950 hover:bg-emerald-400"
-                            }`}
-                          >
-                            {isRescued ? "✓ Saved" : "Rescue Meal"}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </motion.div>
               )}
 
@@ -1788,6 +2191,452 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
           </div>
         )}
 
+        {/* WASTE REPORT DETAIL DIALOG */}
+        {selectedReport && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="bg-[#09090b] border border-white/10 w-full max-w-lg rounded-3xl p-6 relative text-left shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-teal-500 via-emerald-400 to-cyan-500" />
+              <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                <div>
+                  <span className="text-[9px] text-teal-400 font-mono uppercase font-bold block">{selectedReport.category} REPORT</span>
+                  <h3 className="text-sm font-black text-white">{selectedReport.title}</h3>
+                </div>
+                <button 
+                  onClick={() => { audioEngine.playTick(); setSelectedReport(null); }}
+                  className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Images comparison */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {selectedReport.image && (
+                  <div className="space-y-1">
+                    <span className="text-[8px] text-gray-500 font-mono uppercase block">Before Cleanup</span>
+                    <img 
+                      src={selectedReport.image.startsWith("http") ? selectedReport.image : `http://localhost:8000${selectedReport.image}`} 
+                      alt="Before" 
+                      className="w-full h-32 object-cover rounded-xl border border-white/5" 
+                    />
+                  </div>
+                )}
+                {selectedReport.after_image && (
+                  <div className="space-y-1">
+                    <span className="text-[8px] text-emerald-400 font-mono uppercase block">After Cleanup</span>
+                    <img 
+                      src={selectedReport.after_image.startsWith("http") ? selectedReport.after_image : `http://localhost:8000${selectedReport.after_image}`} 
+                      alt="After" 
+                      className="w-full h-32 object-cover rounded-xl border border-white/5" 
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Details grid */}
+              <div className="grid grid-cols-2 gap-3 bg-white/[0.01] p-3 rounded-2xl border border-white/5 text-[11px]">
+                <div>
+                  <span className="text-gray-500 block font-mono text-[9px] uppercase">Reporter</span>
+                  <span className="text-white font-medium">{selectedReport.user_username || "Citizen"}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block font-mono text-[9px] uppercase">Location</span>
+                  <span className="text-white font-medium">{selectedReport.location}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block font-mono text-[9px] uppercase">Status</span>
+                  <span className="text-white font-medium">{selectedReport.status}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block font-mono text-[9px] uppercase">Priority</span>
+                  <span className="text-white font-medium">{selectedReport.priority}</span>
+                </div>
+                {selectedReport.assigned_municipality_username && (
+                  <div className="col-span-2">
+                    <span className="text-gray-500 block font-mono text-[9px] uppercase">Assigned Municipality</span>
+                    <span className="text-teal-400 font-medium">{selectedReport.assigned_municipality_username}</span>
+                  </div>
+                )}
+                {selectedReport.assigned_volunteer_username && (
+                  <div className="col-span-2">
+                    <span className="text-gray-500 block font-mono text-[9px] uppercase">Assigned Volunteer</span>
+                    <span className="text-teal-400 font-medium">{selectedReport.assigned_volunteer_username}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                {selectedReport.status === "ASSIGNED" && (
+                  <button 
+                    onClick={() => { audioEngine.playTick(); setShowCompleteCleanupModal(true); }}
+                    className="flex-1 py-2 bg-emerald-500 text-gray-950 rounded-xl text-xs font-bold uppercase transition-all"
+                  >
+                    Mark Cleaned
+                  </button>
+                )}
+                {profile && selectedReport.user_username === profile.username && (
+                  <button 
+                    onClick={() => deleteWasteReport(selectedReport.id)}
+                    className="py-2 px-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl text-xs font-bold uppercase transition-all"
+                  >
+                    Delete Report
+                  </button>
+                )}
+              </div>
+
+              {/* Rating Section */}
+              {selectedReport.status === "COMPLETED" && (
+                <div className="bg-white/[0.01] p-3 rounded-2xl border border-white/5 text-[11px] space-y-2">
+                  <span className="text-[9px] text-amber-400 font-mono uppercase font-bold block">Cleanup Rating</span>
+                  {selectedReport.rating ? (
+                    <div>
+                      <div className="flex items-center gap-1 text-amber-400 font-bold">
+                        {"★".repeat(selectedReport.rating.rating)}
+                        {"☆".repeat(5 - selectedReport.rating.rating)}
+                      </div>
+                      <p className="text-gray-300 font-light mt-1">{selectedReport.rating.feedback || "No feedback left."}</p>
+                    </div>
+                  ) : profile && selectedReport.user_username === profile.username ? (
+                    <form onSubmit={submitRating} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">Score:</span>
+                        <select 
+                          value={newRatingValue} 
+                          onChange={(e) => setNewRatingValue(parseInt(e.target.value))}
+                          className="bg-black border border-white/10 rounded-lg px-2 py-1 text-white"
+                        >
+                          <option value="5">5 Stars</option>
+                          <option value="4">4 Stars</option>
+                          <option value="3">3 Stars</option>
+                          <option value="2">2 Stars</option>
+                          <option value="1">1 Star</option>
+                        </select>
+                      </div>
+                      <input 
+                        type="text" 
+                        placeholder="Leave feedback on cleanup quality..."
+                        value={newRatingFeedback}
+                        onChange={(e) => setNewRatingFeedback(e.target.value)}
+                        className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                      />
+                      <button type="submit" className="py-1 px-3 bg-amber-500 text-gray-950 rounded-lg text-[10px] font-bold uppercase">Submit Rating</button>
+                    </form>
+                  ) : (
+                    <span className="text-gray-500 italic">Pending rating by citizen reporter.</span>
+                  )}
+                </div>
+              )}
+
+              {/* Comments Section */}
+              <div className="space-y-2 pt-3 border-t border-white/5">
+                <span className="text-[9px] text-teal-400 font-mono uppercase font-bold block">Comments ({selectedReport.comments?.length || 0})</span>
+                <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                  {selectedReport.comments?.map((comment: any) => (
+                    <div key={comment.id} className="p-2.5 bg-white/[0.01] border border-white/5 rounded-xl text-[10px] text-gray-300">
+                      <div className="flex justify-between items-center mb-1">
+                        <strong className="text-white">{comment.username}</strong>
+                        <span className="text-gray-500 font-mono text-[8px]">{new Date(comment.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <p className="font-light">{comment.content}</p>
+                    </div>
+                  ))}
+                </div>
+                <form onSubmit={submitComment} className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-teal-500"
+                  />
+                  <button type="submit" className="py-2 px-4 bg-teal-500 text-gray-950 rounded-xl text-xs font-bold uppercase">Send</button>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* NEW FOOD DONATION MODAL */}
+        {showNewDonationModal && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="bg-[#09090b] border border-white/10 w-full max-w-md rounded-3xl p-6 relative text-left shadow-2xl space-y-4"
+            >
+              <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                <h3 className="text-xs font-black uppercase tracking-wider font-mono text-emerald-400">Post Food Donation</h3>
+                <button onClick={() => setShowNewDonationModal(false)} className="p-1 rounded-full bg-white/5 hover:bg-white/10 text-white"><X className="w-4 h-4" /></button>
+              </div>
+
+              <form onSubmit={submitFoodDonation} className="space-y-3.5">
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Donation Title</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Fresh Veggie Pasta Bowls"
+                    value={newDonationTitle}
+                    onChange={(e) => setNewDonationTitle(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Description</label>
+                  <textarea 
+                    placeholder="Describe ingredients or allergen information..."
+                    value={newDonationDesc}
+                    onChange={(e) => setNewDonationDesc(e.target.value)}
+                    className="w-full h-16 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Food Type</label>
+                    <select 
+                      value={newDonationType}
+                      onChange={(e) => setNewDonationType(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+                    >
+                      <option value="COOKED">Cooked Meals</option>
+                      <option value="PACKAGED">Packaged Food</option>
+                      <option value="RAW_INGREDIENTS">Raw Ingredients</option>
+                      <option value="FRUITS_VEG">Fruits & Vegetables</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Quantity</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 15 plates"
+                      value={newDonationQty}
+                      onChange={(e) => setNewDonationQty(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Quality Status</label>
+                    <select 
+                      value={newDonationQuality}
+                      onChange={(e) => setNewDonationQuality(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                    >
+                      <option value="EXCELLENT">Excellent (Fresh)</option>
+                      <option value="GOOD">Good (Safe)</option>
+                      <option value="FAIR">Fair (Consume ASAP)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Hours to Expiration</label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={newDonationHours}
+                      onChange={(e) => setNewDonationHours(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Pickup Address</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 123 Eco Way, Green City"
+                    value={newDonationAddress}
+                    onChange={(e) => setNewDonationAddress(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg"
+                >
+                  {loading ? "Posting..." : "Post Food Donation"}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* NEW WASTE REPORT MODAL */}
+        {showNewReportModal && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="bg-[#09090b] border border-white/10 w-full max-w-md rounded-3xl p-6 relative text-left shadow-2xl space-y-4"
+            >
+              <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                <h3 className="text-xs font-black uppercase tracking-wider font-mono text-teal-400">File Waste Report</h3>
+                <button onClick={() => setShowNewReportModal(false)} className="p-1 rounded-full bg-white/5 hover:bg-white/10 text-white"><X className="w-4 h-4" /></button>
+              </div>
+
+              <form onSubmit={submitWasteReport} className="space-y-3.5">
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Report Title</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Plastic dump near park entry"
+                    value={newReportTitle}
+                    onChange={(e) => setNewReportTitle(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-teal-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Description</label>
+                  <textarea 
+                    placeholder="Describe details (e.g., amount of waste, accessibility)..."
+                    value={newReportDesc}
+                    onChange={(e) => setNewReportDesc(e.target.value)}
+                    className="w-full h-16 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-teal-500 resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Category</label>
+                    <select 
+                      value={newReportCategory}
+                      onChange={(e) => setNewReportCategory(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-teal-500"
+                    >
+                      <option value="PLASTIC">Plastic</option>
+                      <option value="PAPER">Paper</option>
+                      <option value="METAL">Metal</option>
+                      <option value="GLASS">Glass</option>
+                      <option value="ORGANIC">Organic</option>
+                      <option value="E_WASTE">E-Waste</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Priority</label>
+                    <select 
+                      value={newReportPriority}
+                      onChange={(e) => setNewReportPriority(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-teal-500"
+                    >
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
+                      <option value="CRITICAL">Critical</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Location Address</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Corner of Oak and 4th Street"
+                    value={newReportLocation}
+                    onChange={(e) => setNewReportLocation(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-teal-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Upload Photo</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      if (files && files.length > 0) {
+                        setNewReportImage(files[0]);
+                      }
+                    }}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-gray-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg"
+                >
+                  {loading ? "Filing..." : "Submit Waste Report"}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* COMPLETE CLEANUP MODAL */}
+        {showCompleteCleanupModal && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="bg-[#09090b] border border-white/10 w-full max-w-md rounded-3xl p-6 relative text-left shadow-2xl space-y-4"
+            >
+              <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                <h3 className="text-xs font-black uppercase tracking-wider font-mono text-emerald-400">Complete Cleanup Verification</h3>
+                <button onClick={() => setShowCompleteCleanupModal(false)} className="p-1 rounded-full bg-white/5 hover:bg-white/10 text-white"><X className="w-4 h-4" /></button>
+              </div>
+
+              <form onSubmit={submitCompleteCleanup} className="space-y-3.5">
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Upload Cleanup Proof (Photo)</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      if (files && files.length > 0) {
+                        setCleanupAfterImage(files[0]);
+                      }
+                    }}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block mb-1">Cleanup Notes</label>
+                  <textarea 
+                    placeholder="Describe notes (e.g. all plastic bag collections sorted in recycle node)..."
+                    value={cleanupNotes}
+                    onChange={(e) => setCleanupNotes(e.target.value)}
+                    className="w-full h-16 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none resize-none"
+                  />
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg"
+                >
+                  {loading ? "Completing..." : "Submit Proof & Verify"}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
     </div>

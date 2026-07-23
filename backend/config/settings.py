@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "dashboard",
     "analytics",
     "notifications",
+     "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -159,6 +160,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -166,10 +170,13 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
+     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
 }
 
 SPECTACULAR_SETTINGS = {
