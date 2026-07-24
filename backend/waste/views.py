@@ -21,6 +21,13 @@ class WasteReportViewSet(viewsets.ModelViewSet):
     queryset = WasteReport.objects.all().order_by("-created_at")
     serializer_class = WasteReportSerializer
 
+    def get_throttles(self):
+        if self.action in ["create", "complete_cleanup"]:
+            self.throttle_scope = "uploads"
+        else:
+            self.throttle_scope = "user"
+        return super().get_throttles()
+
     def get_permissions(self):
         if self.action in ["create"]:
             return [permissions.IsAuthenticated()]

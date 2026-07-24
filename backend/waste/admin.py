@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import WasteReport
+from .models import (
+    WasteReport,
+    WasteReportComment,
+    WasteReportTimeline,
+    WasteReportRating,
+)
 
 
 @admin.register(WasteReport)
@@ -26,3 +31,8 @@ class WasteReportAdmin(admin.ModelAdmin):
     )
 
     ordering = ("-created_at",)
+
+
+admin.site.register(WasteReportComment)
+admin.site.register(WasteReportTimeline)
+admin.site.register(WasteReportRating)

@@ -30,6 +30,7 @@ class RegisterView(generics.CreateAPIView):
 class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
+    throttle_scope = "login"
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):
@@ -67,6 +68,7 @@ class EmailVerificationView(views.APIView):
 class PasswordResetRequestView(views.APIView):
     permission_classes = [AllowAny]
     serializer_class = PasswordResetRequestSerializer
+    throttle_scope = "password_reset"
 
     def post(self, request, *args, **kwargs):
         serializer = PasswordResetRequestSerializer(data=request.data)
