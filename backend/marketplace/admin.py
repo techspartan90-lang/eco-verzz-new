@@ -1,3 +1,29 @@
 from django.contrib import admin
+from .models import Product
 
-# Register your models here.
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "title",
+        "seller",
+        "category",
+        "price",
+        "quantity",
+        "is_available",
+        "created_at",
+    )
+
+    list_filter = (
+        "category",
+        "is_available",
+        "created_at",
+    )
+
+    search_fields = (
+        "title",
+        "description",
+        "location",
+    )
+
+    ordering = ("-created_at",)

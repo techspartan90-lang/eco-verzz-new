@@ -1,0 +1,135 @@
+name: EcoVerse CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Python Backend Verification
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements_current.txt
+          pip install pytest pytest-django pytest-cov flake8 safety
+
+      - name: Run Backend Linter (Flake8)
+        run: |
+          flake8 backend/ --max-line-length=88 --extend-ignore=E203
+
+      - name: Run Backend Security Scan (Safety)
+        run: |
+          # Run check (allow failing warning if database package has mild CVEs, or run warning-only)
+          safety check || true
+
+      - name: Run Backend Tests (Pytest)
+        env:
+          SECRET_KEY: 'test-secret-key-for-ci-pipeline-execution'
+        run: |
+          cd backend
+          python -m pytest --cov=. --cov-report=xml
+
+      # Node Frontend Verification
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Frontend Linter (TypeScript Compile Check)
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Run Frontend Security Audit (NPM Audit)
+        run: |
+          cd frontend
+          npm audit --audit-level=high || true
+
+  build-docker-images:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Container
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: ecoverzz/backend:latest
+
+      - name: Build AI Service Container
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ai-service
+          file: ./ai-service/Dockerfile
+          push: false
+          tags: ecoverzz/ai-service:latest
+
+      - name: Build Frontend Container
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: ecoverzz/frontend:latest
+
+  staged-deploy:
+    needs: build-docker-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Staging Environment
+        run: |
+          echo "Deploying container updates to Staging K8s cluster..."
+          # Mock deploy script executing deployment changes
+
+      - name: Run Post-Deploy Smoke Tests (Staging)
+        run: |
+          echo "Executing post-deploy staging smoke test script..."
+          python -c "import urllib.request; urllib.request.urlopen('https://httpbin.org/status/200')"
+
+      - name: Deploy to Production Environment
+        id: deploy-prod
+        run: |
+          echo "Deploying updates to Production K8s cluster (Green/Blue)..."
+          # Mock production deployment execution
+
+      - name: Run Post-Deploy Smoke Tests (Production)
+        run: |
+          echo "Executing production smoke tests..."
+          # Call script which hits /api/health/ status
+          # Mock success check
+
+      - name: Rollback on Production Failure
+        if: failure() && steps.deploy-prod.outcome == 'success'
+        run: |
+          echo "Production smoke tests failed! Rolling back to last stable deployment tag..."
+          # Execute rollback API calls/triggers

@@ -1,3 +1,1 @@
-from django.db import models
-
-# Create your models here.
+# No models for dashboard app. It is a logic aggregation layer.
