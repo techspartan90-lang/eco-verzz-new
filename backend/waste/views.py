@@ -3,7 +3,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction, models
-from .models import WasteReport, WasteReportTimeline, WasteReportComment, WasteReportRating
+from .models import (
+    WasteReport,
+    WasteReportTimeline,
+    WasteReportComment,
+    WasteReportRating,
+    WastePickupRequest,
+    CollectionCenter,
+)
 from .serializers import (
     WasteReportSerializer,
     WasteReportTimelineSerializer,
@@ -12,6 +19,8 @@ from .serializers import (
     MunicipalityAssignmentSerializer,
     VolunteerAssignmentSerializer,
     CompleteCleanupSerializer,
+    WastePickupRequestSerializer,
+    CollectionCenterSerializer,
 )
 from .services import AIWasteDetectionService, GeoLocationService
 from .permissions import IsReporterOrReadOnly, CanAssignOrUpdateStatus, IsCommentOwnerOrReadOnly
@@ -40,7 +49,6 @@ class WasteReportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = WasteReport.objects.all().order_by("-created_at")
         
-        # Filtering
         category = self.request.query_params.get("category")
         if category:
             queryset = queryset.filter(category=category.upper())
@@ -53,7 +61,6 @@ class WasteReportViewSet(viewsets.ModelViewSet):
         if priority:
             queryset = queryset.filter(priority=priority.upper())
 
-        # Simple manual text search
         search = self.request.query_params.get("search")
         if search:
             queryset = queryset.filter(
@@ -65,23 +72,18 @@ class WasteReportViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        # Attach reporting user
         user = self.request.user
         
         with transaction.atomic():
-            # Get pre-saved instance to get access to image file for AI detection
             instance = serializer.save(user=user)
             
-            # Trigger AI Detection Service mock
             if instance.image:
                 ai_result = AIWasteDetectionService.detect_waste_type(instance.image)
                 instance.ai_metadata = ai_result
-                # Auto-adjust category if not set or default
                 if instance.category == "OTHER" and ai_result["detected_category"] != "OTHER":
                     instance.category = ai_result["detected_category"]
                 instance.save()
             
-            # Log initial timeline event
             WasteReportTimeline.objects.create(
                 report=instance,
                 status="PENDING",
@@ -126,7 +128,6 @@ class WasteReportViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             report.assigned_volunteer = volunteer
-            # If not already assigned to municipality, we keep status as ASSIGNED
             report.status = "ASSIGNED"
             report.save()
 
@@ -156,10 +157,9 @@ class WasteReportViewSet(viewsets.ModelViewSet):
             report.status = "COMPLETED"
             report.save()
 
-            # Award citizen reward points and carbon score increment
             citizen = report.user
-            citizen.reward_points += 50  # 50 green coins
-            citizen.carbon_score += 10.0 # 10.0 Carbon credit increment
+            citizen.reward_points += 50
+            citizen.carbon_score += 10.0
             citizen.save()
 
             WasteReportTimeline.objects.create(
@@ -196,7 +196,6 @@ class WasteReportViewSet(viewsets.ModelViewSet):
     def rate(self, request, pk=None):
         report = self.get_object()
         
-        # Only the citizen who reported can rate the cleanup
         if report.user != request.user:
             return Response(
                 {"detail": "Only the reporting citizen can rate the cleanup quality."},
@@ -212,7 +211,6 @@ class WasteReportViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Check if already rated
         if hasattr(report, "rating"):
             return Response(
                 {"detail": "You have already rated this cleanup."},
@@ -246,3 +244,86 @@ class WasteReportViewSet(viewsets.ModelViewSet):
                 {"detail": f"Error calculating nearby reports: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class WastePickupRequestViewSet(viewsets.ModelViewSet):
+    queryset = WastePickupRequest.objects.all().order_by("-created_at")
+    serializer_class = WastePickupRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ["ADMIN", "MUNICIPALITY", "RECYCLER"]:
+            return WastePickupRequest.objects.all().order_by("-created_at")
+        return WastePickupRequest.objects.filter(requester=user).order_by("-created_at")
+
+    def perform_create(self, serializer):
+        serializer.save(requester=self.request.user)
+
+    @action(detail=True, methods=["post"])
+    def accept(self, request, pk=None):
+        pickup = self.get_object()
+        if pickup.status != "REQUESTED":
+            return Response(
+                {"detail": "Only requested pickups can be accepted."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        pickup.assigned_recycler = request.user
+        pickup.status = "ACCEPTED"
+        pickup.save()
+        return Response(
+            {"detail": "Pickup accepted successfully.", "status": pickup.status},
+            status=status.HTTP_200_OK
+        )
+
+    @action(detail=True, methods=["post"])
+    def complete(self, request, pk=None):
+        pickup = self.get_object()
+        if pickup.status != "ACCEPTED":
+            return Response(
+                {"detail": "Only accepted pickups can be marked completed."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        pickup.status = "COMPLETED"
+        pickup.save()
+
+        # Award points to requester
+        requester = pickup.requester
+        requester.reward_points += 30
+        requester.carbon_score += 5.0
+        requester.save()
+
+        return Response(
+            {"detail": "Pickup marked complete. Requester rewarded 30 points.", "status": pickup.status},
+            status=status.HTTP_200_OK
+        )
+
+
+class CollectionCenterViewSet(viewsets.ModelViewSet):
+    queryset = CollectionCenter.objects.filter(is_active=True).order_by("name")
+    serializer_class = CollectionCenterSerializer
+    permission_classes = [permissions.AllowAny]
+
+    @action(detail=False, methods=["get"])
+    def nearby(self, request):
+        latitude = request.query_params.get("latitude")
+        longitude = request.query_params.get("longitude")
+        radius_km = float(request.query_params.get("radius", 10.0))
+
+        if not latitude or not longitude:
+            return Response(
+                {"detail": "latitude and longitude parameters are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        lat = float(latitude)
+        lon = float(longitude)
+
+        nearby_centers = []
+        for center in CollectionCenter.objects.filter(is_active=True):
+            dist = GeoLocationService.haversine_distance(lat, lon, center.latitude, center.longitude)
+            if dist <= radius_km:
+                nearby_centers.append(center)
+
+        serializer = self.get_serializer(nearby_centers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

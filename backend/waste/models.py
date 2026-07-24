@@ -1,6 +1,17 @@
 from django.db import models
 from django.conf import settings
+from django.apps import AppConfig
 
+
+class WasteConfig(AppConfig):
+
+    default_auto_field = "django.db.models.BigAutoField"
+
+    name = "waste"
+
+    def ready(self):
+
+        import waste.signals
 
 class WasteReport(models.Model):
     STATUS_CHOICES = [
@@ -27,6 +38,7 @@ class WasteReport(models.Model):
         ("CRITICAL", "Critical"),
     ]
 
+    report_number = models.CharField(max_length=30, unique=True, blank=True, null=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -164,3 +176,56 @@ class WasteReportRating(models.Model):
 
     def __str__(self):
         return f"Rating {self.rating} for {self.report.title}"
+
+
+class WastePickupRequest(models.Model):
+    STATUS_CHOICES = [
+        ("REQUESTED", "Requested"),
+        ("ACCEPTED", "Accepted"),
+        ("COMPLETED", "Completed"),
+        ("CANCELLED", "Cancelled"),
+    ]
+
+    report = models.ForeignKey(
+        WasteReport,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pickup_requests"
+    )
+    requester = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="requested_pickups"
+    )
+    assigned_recycler = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_pickups"
+    )
+    scheduled_date = models.DateTimeField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="REQUESTED")
+    category = models.CharField(max_length=20, choices=WasteReport.CATEGORY_CHOICES, default="OTHER")
+    address = models.CharField(max_length=255)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Pickup #{self.id} ({self.status}) for {self.requester.username}"
+
+
+class CollectionCenter(models.Model):
+    name = models.CharField(max_length=200)
+    address = models.CharField(max_length=255)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    accepted_categories = models.JSONField(default=list)  # e.g. ["PLASTIC", "PAPER"]
+    contact_number = models.CharField(max_length=30, blank=True)
+    operating_hours = models.CharField(max_length=100, default="09:00 AM - 05:00 PM")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.address})"

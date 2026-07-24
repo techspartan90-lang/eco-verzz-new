@@ -85,6 +85,10 @@ class GeoLocationService:
         return c * r
 
     @classmethod
+    def haversine_distance(cls, lat1, lon1, lat2, lon2):
+        return cls.calculate_distance(lat1, lon1, lat2, lon2)
+
+    @classmethod
     def get_nearby_reports(cls, latitude, longitude, radius_km=5.0):
         """
         Returns reports within a specific radius (in kilometers) from the given GPS coordinates.
