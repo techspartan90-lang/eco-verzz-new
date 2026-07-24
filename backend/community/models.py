@@ -56,3 +56,43 @@ class Campaign(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class CommunityGroup(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="created_groups"
+    )
+    members = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name="joined_groups"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class VolunteerActivity(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    hours_credited = models.FloatField(default=2.0)
+    organizer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="organized_activities"
+    )
+    volunteers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name="joined_activities"
+    )
+    activity_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.hours_credited} hrs)"
