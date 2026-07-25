@@ -6,12 +6,15 @@ import {
   Plus, Calendar, ChevronRight, Check, CheckCircle, HelpCircle, 
   Trophy, Shield, Lock, Mail, FileText, Printer, Search, 
   Flame, Coins, LogOut, RefreshCw, X, Eye, Home, MessageSquare, 
-  Globe, Users, Video, Settings, Cpu, Send, CheckSquare, Sparkle, Trash2, ArrowRight
+  Globe, Users, Video, Settings, Cpu, Send, CheckSquare, Sparkle, Trash2, ArrowRight, Activity, Database, Target, BarChart2, Building2, AlertTriangle
 } from "lucide-react";
 import { audioEngine } from "./AudioEngine";
 import { UserProfile } from "../types";
 import { EarthVisualizer } from "./EarthVisualizer";
 import { api } from "../services/api";
+import { RealtimeUserBrowserInfo } from "./RealtimeUserBrowserInfo";
+import { RightSidebar } from "./dashboard/RightSidebar";
+import { EcoChatOverlay } from "./dashboard/EcoChatOverlay";
 
 interface DashboardProps {
   profile: UserProfile;
@@ -72,9 +75,15 @@ const COMMUNITY_STORIES: Story[] = [
   }
 ];
 
-export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initialView }) => {
   // Navigation View selection
-  const [activeView, setActiveView] = useState<string>("home");
+  const [activeView, setActiveView] = useState<string>(initialView || "home");
+
+  useEffect(() => {
+    if (initialView) {
+      setActiveView(initialView);
+    }
+  }, [initialView]);
 
   // Core Gamification States
   const [ecoPoints, setEcoPoints] = useState(480);
@@ -819,26 +828,44 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
           {/* Navigation Links */}
           <nav className="flex flex-col gap-2 w-full">
             {[
-              { id: "home", label: "Home", icon: Home },
-              { id: "ai_scan", label: "AI Scan", icon: Camera },
-              { id: "marketplace", label: "Circular Exchange", icon: ShoppingBag },
-              { id: "food_rescue", label: "Food Rescue", icon: Leaf },
-              { id: "waste_reports", label: "Waste Reports", icon: Trash2 },
-              { id: "awareness", label: "Environmental Intel", icon: Globe },
-              { id: "missions", label: "Missions", icon: Trophy },
-              { id: "eco_social", label: "Eco Community", icon: Users },
-              { id: "passport", label: "Eco Passport", icon: Award },
-              { id: "rewards", label: "Rewards", icon: Coins },
-              { id: "awareness_hub", label: "Awareness Hub", icon: Video },
-              { id: "eco_ai", label: "Eco AI", icon: MessageSquare },
-              { id: "settings", label: "Settings", icon: Settings },
+              { id: "ai_scan", label: "1. EcoScan AI Guide", icon: Camera },
+              { id: "awareness", label: "2. EcoPulse Hub", icon: Zap },
+              { id: "missions", label: "3. Eco Missions", icon: Target },
+              { id: "home", label: "4. Impact Matrix", icon: BarChart2 },
+              { id: "marketplace", label: "5. Circular Exchange", icon: ShoppingBag },
+              { id: "food_rescue", label: "6. Food Rescue Network", icon: Heart },
+              { id: "waste_reports", label: "7. Community Cleanup", icon: Users },
+              { id: "settings", label: "8. Business & CSR Portal", icon: Building2 },
+              { id: "recycle_connect", label: "9. Recycle Connect", icon: RefreshCw },
+              { id: "passport", label: "10. User Profile & Identity", icon: User },
+              { id: "telemetry", label: "11 & 12. Intel & GPS", icon: Activity },
+              { id: "rewards", label: "13. Rewards & Recognition", icon: Award },
+              { id: "eco_ai", label: "14. AI Insights Advisor", icon: Cpu },
+              { id: "eco_social", label: "15. EcoLink Social Network", icon: Globe },
+              { id: "ecoreport", label: "16. EcoReport Civic", icon: AlertTriangle },
             ].map(item => {
               const Icon = item.icon;
-              const isActive = activeView === item.id;
+              const aliasMap: Record<string, string> = {
+                recycle_connect: "ai_scan",
+                ecoreport: "waste_reports",
+                community_cleanup: "waste_reports",
+                business_csr: "settings",
+                user_profile: "passport",
+                rewards_recognition: "rewards",
+                ai_insights: "eco_ai",
+                ecolink_social: "eco_social",
+                ecoscan: "ai_scan",
+                ecopulse: "awareness",
+                ecomissions: "missions",
+                impact_dashboard: "home",
+                circular_marketplace: "marketplace",
+              };
+              const targetId = aliasMap[item.id] || item.id;
+              const isActive = activeView === item.id || activeView === targetId;
               return (
                 <button
                   key={item.id}
-                  onClick={() => { audioEngine.playTick(); setActiveView(item.id); }}
+                  onClick={() => { audioEngine.playTick(); setActiveView(targetId); }}
                   className={`w-full py-3 px-3.5 rounded-xl flex items-center gap-4 transition-all relative overflow-hidden group/item cursor-pointer text-left ${
                     isActive 
                       ? "text-emerald-400 bg-emerald-500/5 font-semibold shadow-[inset_0_0_12px_rgba(52,211,153,0.06)] border border-emerald-500/10" 
@@ -873,6 +900,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
       <div className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-[#09090b]/95 backdrop-blur-md border-t border-white/5 z-40 flex justify-around items-center px-4">
         {[
           { id: "home", icon: Home },
+          { id: "telemetry", icon: Activity },
           { id: "ai_scan", icon: Camera },
           { id: "marketplace", icon: ShoppingBag },
           { id: "waste_reports", icon: Trash2 },
@@ -895,14 +923,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
 
       {/* MAIN CONTAINER LAYOUT */}
       <main className="flex-1 md:ml-20 group-hover/sidebar:md:ml-20 transition-all duration-300 flex justify-center w-full min-h-screen">
-        <div className="w-full max-w-[1100px] flex flex-col lg:flex-row items-start justify-center gap-8 px-4 md:px-8 py-6">
+        <div className="w-full max-w-[1440px] flex flex-col lg:flex-row items-start justify-center gap-8 px-4 md:px-8 py-6">
           
           {/* CENTER COLUMN: Feed & Active Views */}
-          <div className="w-full lg:max-w-[620px] shrink-0 space-y-6">
+          <div className="w-full flex-1 min-w-0 space-y-6">
             
             {/* Top Stats Header */}
-            <header className="flex justify-between items-center bg-white/[0.02] border border-white/5 p-4 rounded-3xl backdrop-blur-md">
-              <div className="flex gap-4">
+            <header className="flex flex-wrap justify-between items-center bg-white/[0.02] border border-white/5 p-4 rounded-3xl backdrop-blur-md gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-2xl font-mono">
                   <Coins className="w-3.5 h-3.5 text-emerald-400" />
                   <span className="text-xs text-gray-400">Points:</span>
@@ -912,6 +940,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
                   <Flame className="w-3.5 h-3.5 text-amber-500 animate-bounce" />
                   <span className="text-xs text-gray-400">Streak:</span>
                   <span className="text-xs font-black text-white">{streak} days</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl font-mono text-emerald-400 text-xs font-bold">
+                  <Database className="w-3.5 h-3.5" />
+                  <span>Supabase Live</span>
                 </div>
               </div>
               <button 
@@ -923,9 +955,65 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
               </button>
             </header>
 
+            {/* Biosphere Impact Summary Matrix - Fills top horizontal space */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-[#0b101c]/90 border border-emerald-500/20 p-3.5 rounded-2xl backdrop-blur-md flex items-center gap-3 hover:border-emerald-400/40 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm shrink-0">
+                  🌿
+                </div>
+                <div>
+                  <span className="text-[9px] text-gray-400 uppercase font-mono block">CO2 Offset</span>
+                  <span className="text-sm font-black text-white font-mono">2,840 kg</span>
+                </div>
+              </div>
+
+              <div className="bg-[#0b101c]/90 border border-teal-500/20 p-3.5 rounded-2xl backdrop-blur-md flex items-center gap-3 hover:border-teal-400/40 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold text-sm shrink-0">
+                  🌳
+                </div>
+                <div>
+                  <span className="text-[9px] text-gray-400 uppercase font-mono block">Trees Planted</span>
+                  <span className="text-sm font-black text-white font-mono">142 Trees</span>
+                </div>
+              </div>
+
+              <div className="bg-[#0b101c]/90 border border-cyan-500/20 p-3.5 rounded-2xl backdrop-blur-md flex items-center gap-3 hover:border-cyan-400/40 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm shrink-0">
+                  💧
+                </div>
+                <div>
+                  <span className="text-[9px] text-gray-400 uppercase font-mono block">Water Saved</span>
+                  <span className="text-sm font-black text-white font-mono">18,400 L</span>
+                </div>
+              </div>
+
+              <div className="bg-[#0b101c]/90 border border-amber-500/20 p-3.5 rounded-2xl backdrop-blur-md flex items-center gap-3 hover:border-amber-400/40 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-sm shrink-0">
+                  ♻️
+                </div>
+                <div>
+                  <span className="text-[9px] text-gray-400 uppercase font-mono block">Waste Diverted</span>
+                  <span className="text-sm font-black text-white font-mono">540 kg</span>
+                </div>
+              </div>
+            </div>
+
             {/* Render conditional views */}
             <AnimatePresence mode="wait">
               
+              {/* REAL-TIME USER AUTH & BROWSER TELEMETRY VIEW */}
+              {activeView === "telemetry" && (
+                <motion.div
+                  key="telemetry-feed"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  className="w-full space-y-6"
+                >
+                  <RealtimeUserBrowserInfo profile={profile} />
+                </motion.div>
+              )}
+
               {/* HOME VIEW: ECO SOCIAL NETWORK */}
               {activeView === "home" && (
                 <motion.div
@@ -1211,10 +1299,77 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
                           <option value="200">200 Coins Reward</option>
                         </select>
                       </div>
-                      <button type="submit" className="w-full py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold uppercase cursor-pointer transition-all">
-                        Post Listing
+                      <button type="submit" className="w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold uppercase cursor-pointer transition-all">
+                        Post Listing to Exchange
                       </button>
                     </form>
+                  </div>
+
+                  {/* Active Community Material Exchange Ledger */}
+                  <div className="bg-white/[0.01] p-4.5 rounded-2xl border border-white/5 mt-4 text-left space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2.5">
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <CheckCircle className="w-4 h-4 text-emerald-400" /> Active Communal Exchange Listings
+                      </h4>
+                      <span className="text-[10px] text-emerald-400 font-mono font-bold">Supabase Synced</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {userListings.map((l) => (
+                        <div key={l.id} className="p-3 bg-black/40 border border-white/10 rounded-xl flex justify-between items-center">
+                          <div>
+                            <h5 className="text-xs font-bold text-white">{l.name}</h5>
+                            <span className="text-[10px] text-emerald-400 font-mono block font-bold">+{l.reward} EcoPoints</span>
+                          </div>
+                          <span className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono rounded-lg font-bold">
+                            {l.status}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="p-3 bg-black/40 border border-white/10 rounded-xl flex justify-between items-center">
+                        <div>
+                          <h5 className="text-xs font-bold text-white">PET Plastic Bottles (8kg)</h5>
+                          <span className="text-[10px] text-emerald-400 font-mono block font-bold">+180 EcoPoints</span>
+                        </div>
+                        <span className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono rounded-lg font-bold">
+                          Active
+                        </span>
+                      </div>
+                      <div className="p-3 bg-black/40 border border-white/10 rounded-xl flex justify-between items-center">
+                        <div>
+                          <h5 className="text-xs font-bold text-white">Copper Wiring Scrap (2kg)</h5>
+                          <span className="text-[10px] text-emerald-400 font-mono block font-bold">+250 EcoPoints</span>
+                        </div>
+                        <span className="px-2 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[10px] font-mono rounded-lg font-bold">
+                          Verified
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Material Lifecycle & Carbon Savings Analytics Grid */}
+                  <div className="bg-[#0b101c]/90 border border-emerald-500/20 p-4.5 rounded-2xl text-left space-y-3">
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono flex items-center gap-1.5">
+                      <Zap className="w-4 h-4 text-emerald-400" /> Circular Material Lifespan Impact
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+                      <div className="p-3 bg-black/50 border border-white/5 rounded-xl">
+                        <span className="text-[9px] text-gray-400 uppercase block">Aluminum</span>
+                        <span className="text-emerald-400 font-bold">95% Saved</span>
+                      </div>
+                      <div className="p-3 bg-black/50 border border-white/5 rounded-xl">
+                        <span className="text-[9px] text-gray-400 uppercase block">Glass Bottle</span>
+                        <span className="text-teal-300 font-bold">100% Recyclable</span>
+                      </div>
+                      <div className="p-3 bg-black/50 border border-white/5 rounded-xl">
+                        <span className="text-[9px] text-gray-400 uppercase block">Cardboard</span>
+                        <span className="text-amber-400 font-bold">4.2kg CO2 Off</span>
+                      </div>
+                      <div className="p-3 bg-black/50 border border-white/5 rounded-xl">
+                        <span className="text-[9px] text-gray-400 uppercase block">E-Waste</span>
+                        <span className="text-purple-300 font-bold">Toxic Safeguard</span>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -1799,146 +1954,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
 
           </div>
 
-          {/* RIGHT COLUMN: Community Social sidebar (Spotify / Instagram Desktop inspired) */}
-          <div className="hidden lg:block w-[340px] shrink-0 space-y-5">
-            
-            {/* Messages simulation list */}
-            <div className="bg-[#09090b]/80 border border-white/5 p-4.5 rounded-3xl backdrop-blur-md text-left">
-              <h4 className="text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase mb-3.5 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5" /> Eco Messages
-              </h4>
-              <div className="space-y-3">
-                {Object.keys(chatsData).map(name => (
-                  <div 
-                    key={name}
-                    onClick={() => { audioEngine.playTick(); setActiveChatPartner(name); }}
-                    className="flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.01] hover:bg-white/[0.04] border border-white/5 cursor-pointer transition-all group"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-sm font-black border border-emerald-500/20 text-emerald-400 group-hover:scale-105 transition-transform shrink-0">
-                        {name.charAt(0)}
-                      </div>
-                      <div className="truncate text-left">
-                        <span className="text-xs font-bold text-white block leading-tight">{name}</span>
-                        <span className="text-[9px] text-gray-500 truncate block mt-0.5">
-                          {chatsData[name][chatsData[name].length - 1]?.text || "No conversations yet."}
-                        </span>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-3 h-3 text-gray-500 group-hover:text-white transition-colors shrink-0" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Live Notifications alerts panel */}
-            <div className="bg-[#09090b]/80 border border-white/5 p-4.5 rounded-3xl backdrop-blur-md text-left">
-              <div className="flex justify-between items-center mb-3">
-                <h4 className="text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase flex items-center gap-1.5">
-                  <Bell className="w-3.5 h-3.5 animate-pulse" /> Alerts Ledger
-                </h4>
-                {notifications.length > 0 && (
-                  <button onClick={() => { audioEngine.playTick(); setNotifications([]); }} className="text-[8px] uppercase tracking-widest font-mono text-gray-500 hover:text-white">Clear</button>
-                )}
-              </div>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                {notifications.length === 0 ? (
-                  <p className="text-[10px] text-gray-500 text-center py-2">Ecosystem ledger is synced! 🌿</p>
-                ) : (
-                  notifications.map(n => (
-                    <div key={n.id} className="p-2.5 bg-white/[0.01] border border-white/5 rounded-xl text-[10px] text-gray-300 leading-normal">
-                      <p>{n.text}</p>
-                      <span className="text-[8px] text-gray-500 font-mono mt-0.5 block">{n.time}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Suggested Friends Nearby */}
-            <div className="bg-[#09090b]/80 border border-white/5 p-4.5 rounded-3xl backdrop-blur-md text-left">
-              <h4 className="text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase mb-3 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5" /> Nearby Volunteers
-              </h4>
-              <div className="space-y-3">
-                {[
-                  { name: "Sarah Moon", icon: "🌱", role: "Tree Planter" },
-                  { name: "GreenRoots NGO", icon: "🏢", role: "Verified partner" },
-                  { name: "Aria Rivers", icon: "👩‍🚀", role: "Ocean Guard" }
-                ].map(item => {
-                  const isFollowing = followingList.includes(item.name);
-                  return (
-                    <div key={item.name} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 bg-white/5 border border-white/5 rounded-lg flex items-center justify-center text-xs shrink-0">{item.icon}</span>
-                        <div className="text-left">
-                          <span className="text-xs font-bold text-white block leading-tight">{item.name}</span>
-                          <span className="text-[8px] text-gray-500 block">{item.role}</span>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={(e) => handleFollowFriend(item.name, e)}
-                        className={`text-[9px] uppercase tracking-wider px-2 py-1 rounded-lg font-black transition-all cursor-pointer ${
-                          isFollowing 
-                            ? "bg-white/5 text-gray-400" 
-                            : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400"
-                        }`}
-                      >
-                        {isFollowing ? "Following" : "Follow"}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Leaderboard stats summary widget */}
-            <div className="bg-[#09090b]/80 border border-white/5 p-4.5 rounded-3xl backdrop-blur-md text-left space-y-3">
-              <h4 className="text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase flex items-center gap-1.5">
-                <Trophy className="w-3.5 h-3.5" /> Leaderboard
-              </h4>
-              <div className="space-y-2 text-[11px]">
-                <div className="flex justify-between p-2 bg-[#d97706]/5 border border-[#d97706]/10 rounded-xl">
-                  <span className="font-bold text-amber-400">1. Elena G.</span>
-                  <span className="font-mono text-gray-400">2,450 XP</span>
-                </div>
-                <div className="flex justify-between p-2 bg-[#94a3b8]/5 border border-[#94a3b8]/10 rounded-xl">
-                  <span className="font-bold text-slate-300">2. Marcus A.</span>
-                  <span className="font-mono text-gray-400">1,920 XP</span>
-                </div>
-                <div className="flex justify-between p-2 bg-white/[0.01] border border-white/5 rounded-xl">
-                  <span className="font-bold text-gray-300">3. Dave K.</span>
-                  <span className="font-mono text-gray-400">1,680 XP</span>
-                </div>
-                <div className="flex justify-between p-2 bg-emerald-500/15 border border-emerald-500/20 rounded-xl font-bold">
-                  <span className="text-emerald-400">4. You</span>
-                  <span className="font-mono text-emerald-400">{xp + 650} XP</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Local Weather */}
-            <div className="bg-[#09090b]/80 border border-white/5 p-4 rounded-3xl text-left">
-              <span className="text-[8px] font-mono text-emerald-400 block uppercase">TODAY'S WEATHER COORDINATES</span>
-              <p className="text-xs font-bold text-white mt-1">☀️ 22°C Clear & Sunny</p>
-              <p className="text-[9px] text-gray-400 mt-0.5">Terrific atmospheric stability for active tree planting and composting!</p>
-            </div>
-
-            {/* Compact rotating mini globe or stats */}
-            <div className="bg-[#09090b]/80 border border-white/5 p-4 rounded-3xl text-left relative overflow-hidden">
-              <span className="text-[8px] font-mono text-emerald-400 block uppercase">Ecosystem Health</span>
-              <div className="flex justify-between items-center mt-2">
-                <div>
-                  <span className="text-sm font-bold text-white font-mono block">12.4 Tons CO2</span>
-                  <span className="text-[8px] text-gray-500 uppercase font-mono">Verified Communal Offsets</span>
-                </div>
-                <div className="w-12 h-12 relative shrink-0 overflow-hidden rounded-full">
-                  <EarthVisualizer scene="dashboard" healingStage={5} zoomLevel="far" />
-                </div>
-              </div>
-            </div>
-
-          </div>
+          {/* RIGHT COLUMN: Community Social sidebar */}
+          <RightSidebar
+            activeView={activeView}
+            chatsData={chatsData}
+            activeChatPartner={activeChatPartner}
+            onSelectChatPartner={(name) => setActiveChatPartner(name)}
+            notifications={notifications}
+            onClearNotifications={() => setNotifications([])}
+            followingList={followingList}
+            onFollowFriend={handleFollowFriend}
+            xp={xp}
+          />
 
         </div>
       </main>
@@ -2153,43 +2180,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout }) => {
         )}
 
         {/* INTERACTIVE MESSAGE BOX CORNER POPUP */}
-        {activeChatPartner && (
-          <div className="fixed bottom-6 right-6 md:right-24 bg-[#09090b] border border-white/10 w-80 rounded-3xl shadow-2xl z-[80] overflow-hidden">
-            <div className="p-3 bg-white/[0.03] border-b border-white/5 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-emerald-500 text-gray-950 font-black flex items-center justify-center text-[10px]">{activeChatPartner.charAt(0)}</div>
-                <span className="text-xs font-bold text-white block">{activeChatPartner}</span>
-              </div>
-              <button onClick={() => setActiveChatPartner(null)} className="p-1 rounded-full hover:bg-white/5 text-gray-400 hover:text-white"><X className="w-3.5 h-3.5" /></button>
-            </div>
-
-            {/* Chat Body */}
-            <div className="h-48 overflow-y-auto p-3 space-y-3 flex flex-col justify-end">
-              <div className="space-y-2.5">
-                {(chatsData[activeChatPartner] || []).map((msg, idx) => (
-                  <div key={idx} className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}>
-                    <div className={`p-2.5 rounded-xl max-w-[85%] text-[11px] leading-relaxed ${
-                      msg.sender === "me" ? "bg-emerald-500 text-gray-950 rounded-tr-none font-medium" : "bg-white/5 text-gray-200 rounded-tl-none font-light"
-                    }`}>
-                      {msg.text}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <form onSubmit={handleSendChat} className="p-2 border-t border-white/5 flex gap-1 bg-black/20">
-              <input 
-                type="text" 
-                placeholder="Type message..."
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                className="flex-1 bg-black/40 border border-white/5 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
-              />
-              <button type="submit" className="p-1.5 bg-emerald-500 text-gray-950 rounded-lg hover:bg-emerald-400 cursor-pointer"><Send className="w-3 h-3" /></button>
-            </form>
-          </div>
-        )}
+        <EcoChatOverlay
+          activeChatPartner={activeChatPartner}
+          chatsData={chatsData}
+          chatInput={chatInput}
+          onChatInputChange={setChatInput}
+          onSendChat={handleSendChat}
+          onClose={() => setActiveChatPartner(null)}
+        />
 
         {/* WASTE REPORT DETAIL DIALOG */}
         {selectedReport && (

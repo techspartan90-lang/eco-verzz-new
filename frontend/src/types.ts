@@ -1,4 +1,4 @@
-export type SceneType = "healing" | "auth" | "dashboard_coming_soon" | "dashboard";
+export type SceneType = "website" | "healing" | "auth" | "dashboard_coming_soon" | "dashboard";
 
 export interface UserProfile {
   username: string;
