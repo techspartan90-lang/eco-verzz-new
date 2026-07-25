@@ -1,4 +1,10 @@
 {
+  "name": "eco-verzz-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "npm --prefix frontend run start"
+  },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8"
