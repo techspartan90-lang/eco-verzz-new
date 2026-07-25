@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoVerzz AI – Enhanced Dashboard Components Preview</title>
+  <style>
+    :root {
+      --primary-green: #10b981;
+      --dark-green: #065f46;
+      --accent-cyan: #06b6d4;
+      --bg-dark: #080d19;
+      --card-glass: rgba(11, 16, 28, 0.9);
+      --border-emerald: rgba(16, 185, 129, 0.2);
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: #f3f4f6;
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .card {
+      background: var(--card-glass);
+      border: 1px solid var(--border-emerald);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    .card-title {
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--primary-green);
+      margin-bottom: 8px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--border-emerald);
+      color: var(--primary-green);
+      font-size: 11px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div style="max-width: 1400px; margin: 0 auto 24px;">
+    <h1 style="color: #fff; font-size: 28px; margin: 0;">EcoVerzz AI – Modular Enhancement Suite</h1>
+    <p style="color: #9ca3af; font-size: 14px;">16 Feature Detail Components & Real-Time Dashboard Preview</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <span class="badge">01. EcoScan</span>
+      <div class="card-title" style="margin-top: 12px;">AI Molecular Material Scanner</div>
+      <p style="color: #9ca3af; font-size: 13px;">Real-time camera scanning for PET plastics, glass, paper, and electronic waste with instant carbon offset calculations.</p>
+    </div>
+
+    <div class="card">
+      <span class="badge">02. EcoPulse</span>
+      <div class="card-title" style="margin-top: 12px;">Communal Conservation Feed</div>
+      <p style="color: #9ca3af; font-size: 13px;">Verified local stories, volunteer beach cleanups, and community action logs synced to Supabase.</p>
+    </div>
+
+    <div class="card">
+      <span class="badge">03. EcoRescue</span>
+      <div class="card-title" style="margin-top: 12px;">Surplus Food Diversion Hub</div>
+      <p style="color: #9ca3af; font-size: 13px;">Direct food package rescue from local bakeries and cafes diverted to community pantries.</p>
+    </div>
+
+    <div class="card">
+      <span class="badge">04. EcoExchange</span>
+      <div class="card-title" style="margin-top: 12px;">Circular Recyclables Marketplace</div>
+      <p style="color: #9ca3af; font-size: 13px;">Exchange scrap copper, aluminum, and clean cardboard for EcoPoints and Madagascar tree planting rewards.</p>
+    </div>
+  </div>
+</body>
+</html>

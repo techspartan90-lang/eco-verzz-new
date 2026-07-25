@@ -1,6 +1,13 @@
 from rest_framework import serializers
 from users.models import User
-from .models import WasteReport, WasteReportTimeline, WasteReportComment, WasteReportRating
+from .models import (
+    WasteReport,
+    WasteReportTimeline,
+    WasteReportComment,
+    WasteReportRating,
+    WastePickupRequest,
+    CollectionCenter,
+)
 from .validators import validate_image_size, validate_rating_value
 
 
@@ -69,6 +76,7 @@ class WasteReportSerializer(serializers.ModelSerializer):
         model = WasteReport
         fields = [
             "id",
+            "report_number",
             "user",
             "user_username",
             "title",
@@ -95,6 +103,7 @@ class WasteReportSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "report_number",
             "user",
             "before_image",
             "after_image",
@@ -127,3 +136,44 @@ class VolunteerAssignmentSerializer(serializers.Serializer):
 class CompleteCleanupSerializer(serializers.Serializer):
     after_image = serializers.ImageField(validators=[validate_image_size])
     notes = serializers.CharField(required=False, allow_blank=True)
+
+
+class WastePickupRequestSerializer(serializers.ModelSerializer):
+    requester_username = serializers.CharField(source="requester.username", read_only=True)
+    recycler_username = serializers.CharField(source="assigned_recycler.username", read_only=True)
+
+    class Meta:
+        model = WastePickupRequest
+        fields = [
+            "id",
+            "report",
+            "requester",
+            "requester_username",
+            "assigned_recycler",
+            "recycler_username",
+            "scheduled_date",
+            "status",
+            "category",
+            "address",
+            "notes",
+            "created_at",
+        ]
+        read_only_fields = ["id", "requester", "assigned_recycler", "status", "created_at"]
+
+
+class CollectionCenterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectionCenter
+        fields = [
+            "id",
+            "name",
+            "address",
+            "latitude",
+            "longitude",
+            "accepted_categories",
+            "contact_number",
+            "operating_hours",
+            "is_active",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]

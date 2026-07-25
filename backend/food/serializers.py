@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from users.models import User
-from .models import FoodDonation, FoodDonationTimeline
+from .models import FoodDonation, FoodDonationTimeline, FoodRequest
 from .validators import validate_expiry_time
 from authentication.validators import validate_latitude, validate_longitude
 
@@ -29,6 +29,7 @@ class FoodDonationSerializer(serializers.ModelSerializer):
     latitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[validate_latitude])
     longitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[validate_longitude])
     expiry_time = serializers.DateTimeField(validators=[validate_expiry_time])
+    is_expired = serializers.BooleanField(read_only=True)
     
     timeline = FoodDonationTimelineSerializer(many=True, read_only=True)
 
@@ -44,6 +45,7 @@ class FoodDonationSerializer(serializers.ModelSerializer):
             "quantity",
             "quality_status",
             "expiry_time",
+            "is_expired",
             "pickup_address",
             "latitude",
             "longitude",
@@ -52,6 +54,7 @@ class FoodDonationSerializer(serializers.ModelSerializer):
             "assigned_ngo_username",
             "assigned_volunteer",
             "assigned_volunteer_username",
+            "qr_code_token",
             "timeline",
             "created_at",
             "updated_at",
@@ -62,6 +65,7 @@ class FoodDonationSerializer(serializers.ModelSerializer):
             "status",
             "assigned_ngo",
             "assigned_volunteer",
+            "qr_code_token",
             "timeline",
             "created_at",
             "updated_at",
@@ -84,3 +88,23 @@ class UpdatePickupStatusSerializer(serializers.Serializer):
         choices=[("PICKED_UP", "Picked Up"), ("DELIVERED", "Delivered"), ("CANCELLED", "Cancelled")]
     )
     notes = serializers.CharField(required=False, allow_blank=True)
+    qr_code_token = serializers.CharField(required=False, allow_blank=True)
+
+
+class FoodRequestSerializer(serializers.ModelSerializer):
+    ngo_username = serializers.CharField(source="ngo.username", read_only=True)
+
+    class Meta:
+        model = FoodRequest
+        fields = [
+            "id",
+            "ngo",
+            "ngo_username",
+            "title",
+            "description",
+            "quantity_needed",
+            "food_type",
+            "is_fulfilled",
+            "created_at",
+        ]
+        read_only_fields = ["id", "ngo", "created_at"]

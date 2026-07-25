@@ -26,4 +26,4 @@ class ProductAdmin(admin.ModelAdmin):
         "location",
     )
 
-    ordering = ("-created_at",)
+    ordering = ("-created_at",) 

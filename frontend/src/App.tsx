@@ -5,6 +5,7 @@ import AmbientBackground from "./components/AmbientBackground";
 import EarthVisualizer from "./components/EarthVisualizer";
 import AuthScreen from "./components/AuthScreen";
 import { Dashboard } from "./components/Dashboard";
+import { EcoVerzzWebsite } from "./components/EcoVerzzWebsite";
 import { audioEngine } from "./components/AudioEngine";
 import { api } from "./services/api";
 import { 
@@ -51,7 +52,7 @@ const ONBOARDING_STAGES = [
 ];
 
 export default function App() {
-  const [scene, setScene] = useState<SceneType>("healing");
+  const [scene, setScene] = useState<SceneType>("website");
   const [healingStage, setHealingStage] = useState(0); // 0 to 5
   const [celebrationStep, setCelebrationStep] = useState(0); // 0: healing, 1: You chose to protect..., 2: Welcome to EcoVerzz
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -66,12 +67,32 @@ export default function App() {
       try {
         const parsed: UserProfile = JSON.parse(saved);
         setProfile(parsed);
-        setScene("dashboard"); // Skip directly to our premium immersive dashboard!
       } catch (e) {
         console.warn("Could not load saved profile", e);
       }
     }
   }, []);
+
+  const [dashboardView, setDashboardView] = useState<string>("home");
+
+  const handleLaunchPlatform = (targetView?: string) => {
+    if (targetView) {
+      setDashboardView(targetView);
+    }
+    if (!profile) {
+      const defaultProf: UserProfile = {
+        username: "Eco Pioneer",
+        email: "pioneer@ecoverzz.org",
+        ecoPoints: 480,
+        scannedItemsCount: 65,
+        rank: "Citizen Guardian",
+        joinedAt: "July 2026",
+      };
+      setProfile(defaultProf);
+      localStorage.setItem("ecoverzz_profile", JSON.stringify(defaultProf));
+    }
+    setScene("dashboard");
+  };
 
   // Control Earth visual zoom level based on active scene stage
   useEffect(() => {
@@ -504,6 +525,22 @@ export default function App() {
             </motion.div>
           )}
 
+          {/* ECOVERZZ AI CORE FEATURES WEBSITE */}
+          {scene === "website" && (
+            <motion.div
+              key="website-container"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full"
+            >
+              <EcoVerzzWebsite
+                onLaunchApp={handleLaunchPlatform}
+                profile={profile}
+              />
+            </motion.div>
+          )}
+
           {/* HIGH-FIDELITY ACTIVE CONSERVATION DASHBOARD */}
           {scene === "dashboard" && profile && (
             <motion.div
@@ -511,9 +548,25 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="w-full"
+              className="w-full relative"
             >
-              <Dashboard profile={profile} onLogout={handleLogout} />
+              {/* Top View Switcher Navigation Bar */}
+              <div className="bg-[#09090b]/90 border-b border-white/10 px-6 py-2.5 flex justify-between items-center text-xs font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="text-gray-400 font-bold">ECOVERZZ PLATFORM LIVE</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => { audioEngine.playTick(); setScene("website"); }}
+                    className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-400 border border-emerald-500/30 transition-all cursor-pointer flex items-center gap-1.5 font-bold"
+                  >
+                    🌐 Return to EcoVerzz Website (16 AI Features)
+                  </button>
+                </div>
+              </div>
+
+              <Dashboard profile={profile} onLogout={handleLogout} initialView={dashboardView} />
             </motion.div>
           )}
 
