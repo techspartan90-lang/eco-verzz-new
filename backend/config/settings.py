@@ -104,7 +104,9 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 
-if DB_NAME and DB_USER and DB_PASSWORD:
+IS_TESTING = "test" in sys.argv or "pytest" in sys.modules or os.getenv("TESTING") == "True"
+
+if DB_NAME and DB_USER and DB_PASSWORD and not IS_TESTING:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -122,6 +124,7 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

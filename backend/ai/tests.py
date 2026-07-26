@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -22,9 +22,20 @@ class AITestCases(APITestCase):
         response = self.client.post(self.scan_url, {}, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch("ai.services.requests.post")
+    @patch("requests.post")
     def test_scan_success(self, mock_post):
-        mock_post.side_effect = Exception("Mocked network error for fallback")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "category": "PLASTIC",
+            "confidence": 0.92,
+            "points": 40,
+            "co2_offset": 0.25,
+            "message": "Detected PET Plastic Bottle"
+        }
+        mock_post.return_value = mock_response
+
         self.client.force_authenticate(user=self.user)
 
         # Create a mock image file
@@ -49,4 +60,3 @@ class AITestCases(APITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.reward_points, 40)
         self.assertEqual(self.user.carbon_score, 0.25)
-
