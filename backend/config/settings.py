@@ -1,6 +1,8 @@
 """
 Django settings for EcoVerse config project.
 """
+from sentry_sdk.integrations.django import DjangoIntegration
+import sentry_sdk
 from datetime import timedelta
 from pathlib import Path
 import os
@@ -12,8 +14,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file if present
 dotenv.load_dotenv(BASE_DIR / ".env")
 
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 if SENTRY_DSN:
@@ -24,7 +24,8 @@ if SENTRY_DSN:
         send_default_pii=True
     )
 
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-)9$c8lf442(z8ad!5u!p$mp78#_=pet)91$g+)+p+6e+r5ydjj")
+SECRET_KEY = os.getenv(
+    "SECRET_KEY", "django-insecure-)9$c8lf442(z8ad!5u!p$mp78#_=pet)91$g+)+p+6e+r5ydjj")
 
 DEBUG = os.getenv("DEBUG", "True").lower() in ["true", "1", "yes"]
 
@@ -165,7 +166,8 @@ REST_FRAMEWORK = {
     }
 }
 
-TESTING = 'test' in sys.argv or 'pytest' in sys.argv or any('pytest' in arg for arg in sys.argv) or "pytest" in sys.modules
+TESTING = 'test' in sys.argv or 'pytest' in sys.argv or any(
+    'pytest' in arg for arg in sys.argv) or "pytest" in sys.modules
 
 if TESTING:
     CACHES = {

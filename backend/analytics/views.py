@@ -8,6 +8,7 @@ from .serializers import EnvironmentalImpactSerializer
 from .permissions import IsImpactOwner
 from .services import AnalyticsService
 
+
 class EnvironmentalImpactViewSet(viewsets.ModelViewSet):
     queryset = EnvironmentalImpact.objects.all().order_by("-recorded_date")
     serializer_class = EnvironmentalImpactSerializer

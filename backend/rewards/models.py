@@ -1,13 +1,15 @@
 from django.db import models
 from django.conf import settings
 
+
 class RewardChest(models.Model):
     CHEST_TYPES = [
         ("DAILY", "Daily Leaf Chest"),
         ("EPIC", "Epic Marine Chest"),
         ("COSMIC", "Cosmic Biosphere Chest")
     ]
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chests")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE, related_name="chests")
     chest_type = models.CharField(max_length=20, choices=CHEST_TYPES, default="DAILY")
     is_opened = models.BooleanField(default=False)
     points_reward = models.IntegerField(default=100)
@@ -19,7 +21,8 @@ class RewardChest(models.Model):
 
 
 class DailyMission(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="daily_missions")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE, related_name="daily_missions")
     title = models.CharField(max_length=200)
     required_progress = models.IntegerField(default=2)
     current_progress = models.IntegerField(default=0)
@@ -32,7 +35,8 @@ class DailyMission(models.Model):
 
 
 class Stamp(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="stamps")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE, related_name="stamps")
     name = models.CharField(max_length=100)
     emoji = models.CharField(max_length=10)
     unlocked_at = models.DateTimeField(auto_now_add=True)
@@ -52,7 +56,8 @@ class Badge(models.Model):
 
 
 class UserBadge(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="badges")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE, related_name="badges")
     badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
     unlocked_at = models.DateTimeField(auto_now_add=True)
 
@@ -87,7 +92,8 @@ class WalletTransaction(models.Model):
         ("EARNED", "Points Earned"),
         ("REDEEMED", "Points Redeemed"),
     ]
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="wallet_transactions")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE, related_name="wallet_transactions")
     amount = models.IntegerField()
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
     description = models.CharField(max_length=255)

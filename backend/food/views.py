@@ -2,7 +2,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.utils import timezone
 from .models import FoodDonation, FoodDonationTimeline, FoodRequest
 from .serializers import (
@@ -61,7 +61,7 @@ class FoodDonationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         with transaction.atomic():
             instance = serializer.save(donor=self.request.user)
-            
+
             FoodDonationTimeline.objects.create(
                 donation=instance,
                 status="PENDING",
@@ -85,7 +85,7 @@ class FoodDonationViewSet(viewsets.ModelViewSet):
         donation = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         notes = serializer.validated_data.get("notes", "")
 
         if donation.status != "PENDING":
@@ -122,7 +122,7 @@ class FoodDonationViewSet(viewsets.ModelViewSet):
         donation = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         volunteer = serializer.validated_data["volunteer_id"]
         notes = serializer.validated_data.get("notes", "")
 
@@ -151,7 +151,8 @@ class FoodDonationViewSet(viewsets.ModelViewSet):
             )
 
         return Response(
-            {"detail": f"Volunteer {volunteer.username} assigned successfully.", "status": donation.status},
+            {"detail": f"Volunteer {volunteer.username} assigned successfully.",
+                "status": donation.status},
             status=status.HTTP_200_OK
         )
 
@@ -160,7 +161,7 @@ class FoodDonationViewSet(viewsets.ModelViewSet):
         donation = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         target_status = serializer.validated_data["status"]
         notes = serializer.validated_data.get("notes", "")
         provided_token = serializer.validated_data.get("qr_code_token")
@@ -189,21 +190,26 @@ class FoodDonationViewSet(viewsets.ModelViewSet):
             )
 
         return Response(
-            {"detail": f"Status updated to {target_status} successfully.", "status": donation.status},
+            {"detail": f"Status updated to {target_status} successfully.",
+                "status": donation.status},
             status=status.HTTP_200_OK
         )
 
     @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated, IsNGOUser])
     def ngo_dashboard(self, request):
         user = request.user
-        
-        total_claimed = FoodDonation.objects.filter(assigned_ngo=user).count()
-        pending_pickups = FoodDonation.objects.filter(assigned_ngo=user, status__in=["ACCEPTED", "ASSIGNED"]).count()
-        completed_distributions = FoodDonation.objects.filter(assigned_ngo=user, status="DELIVERED").count()
-        
-        type_breakdown = FoodDonation.objects.filter(assigned_ngo=user).values("food_type").annotate(count=Count("id"))
 
-        unclaimed_available = FoodDonation.objects.filter(status="PENDING", expiry_time__gt=timezone.now()).count()
+        total_claimed = FoodDonation.objects.filter(assigned_ngo=user).count()
+        pending_pickups = FoodDonation.objects.filter(
+            assigned_ngo=user, status__in=["ACCEPTED", "ASSIGNED"]).count()
+        completed_distributions = FoodDonation.objects.filter(
+            assigned_ngo=user, status="DELIVERED").count()
+
+        type_breakdown = FoodDonation.objects.filter(
+            assigned_ngo=user).values("food_type").annotate(count=Count("id"))
+
+        unclaimed_available = FoodDonation.objects.filter(
+            status="PENDING", expiry_time__gt=timezone.now()).count()
 
         return Response({
             "total_claimed": total_claimed,

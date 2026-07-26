@@ -6,7 +6,8 @@ from authentication.validators import validate_latitude, validate_longitude
 
 
 class FoodDonationTimelineSerializer(serializers.ModelSerializer):
-    changed_by_username = serializers.CharField(source="changed_by.username", read_only=True)
+    changed_by_username = serializers.CharField(
+        source="changed_by.username", read_only=True)
 
     class Meta:
         model = FoodDonationTimeline
@@ -23,14 +24,18 @@ class FoodDonationTimelineSerializer(serializers.ModelSerializer):
 
 class FoodDonationSerializer(serializers.ModelSerializer):
     donor_username = serializers.CharField(source="donor.username", read_only=True)
-    assigned_ngo_username = serializers.CharField(source="assigned_ngo.username", read_only=True)
-    assigned_volunteer_username = serializers.CharField(source="assigned_volunteer.username", read_only=True)
-    
-    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[validate_latitude])
-    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[validate_longitude])
+    assigned_ngo_username = serializers.CharField(
+        source="assigned_ngo.username", read_only=True)
+    assigned_volunteer_username = serializers.CharField(
+        source="assigned_volunteer.username", read_only=True)
+
+    latitude = serializers.DecimalField(
+        max_digits=9, decimal_places=6, validators=[validate_latitude])
+    longitude = serializers.DecimalField(
+        max_digits=9, decimal_places=6, validators=[validate_longitude])
     expiry_time = serializers.DateTimeField(validators=[validate_expiry_time])
     is_expired = serializers.BooleanField(read_only=True)
-    
+
     timeline = FoodDonationTimelineSerializer(many=True, read_only=True)
 
     class Meta:
@@ -85,7 +90,8 @@ class AssignVolunteerSerializer(serializers.Serializer):
 
 class UpdatePickupStatusSerializer(serializers.Serializer):
     status = serializers.ChoiceField(
-        choices=[("PICKED_UP", "Picked Up"), ("DELIVERED", "Delivered"), ("CANCELLED", "Cancelled")]
+        choices=[("PICKED_UP", "Picked Up"), ("DELIVERED",
+                                              "Delivered"), ("CANCELLED", "Cancelled")]
     )
     notes = serializers.CharField(required=False, allow_blank=True)
     qr_code_token = serializers.CharField(required=False, allow_blank=True)

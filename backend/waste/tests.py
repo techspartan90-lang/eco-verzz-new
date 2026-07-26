@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from django.core.files.uploadedfile import SimpleUploadedFile
 from users.models import User
-from .models import WasteReport, WasteReportTimeline, WasteReportComment, WasteReportRating, WastePickupRequest, CollectionCenter
+from .models import WasteReport, WasteReportTimeline, WasteReportRating, CollectionCenter
 
 
 class WasteTests(APITestCase):
@@ -69,18 +69,19 @@ class WasteTests(APITestCase):
         self.client.force_authenticate(user=self.citizen)
         url = reverse("waste-list")
         response = self.client.post(url, self.report_data, format="multipart")
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(WasteReport.objects.filter(title="Plastic Waste Dump").exists())
-        
+
         report = WasteReport.objects.get(title="Plastic Waste Dump")
         self.assertEqual(report.user, self.citizen)
         self.assertEqual(report.status, "PENDING")
         self.assertEqual(report.category, "PLASTIC")
         self.assertTrue(report.report_number.startswith("EVZ-"))
-        
+
         # Verify initial timeline entry
-        self.assertTrue(WasteReportTimeline.objects.filter(report=report, status="PENDING").exists())
+        self.assertTrue(WasteReportTimeline.objects.filter(
+            report=report, status="PENDING").exists())
         # Verify AI metadata populated
         self.assertIn("confidence", report.ai_metadata)
 
@@ -96,15 +97,17 @@ class WasteTests(APITestCase):
 
         self.client.force_authenticate(user=self.municipality)
         url = reverse("waste-assign-municipality", args=[report.id])
-        
-        response = self.client.post(url, {"municipality_id": self.municipality.id, "notes": "On our way."}, format="json")
+
+        response = self.client.post(
+            url, {"municipality_id": self.municipality.id, "notes": "On our way."}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         report.refresh_from_db()
         self.assertEqual(report.assigned_municipality, self.municipality)
         self.assertEqual(report.status, "ASSIGNED")
-        
-        self.assertTrue(WasteReportTimeline.objects.filter(report=report, status="ASSIGNED").exists())
+
+        self.assertTrue(WasteReportTimeline.objects.filter(
+            report=report, status="ASSIGNED").exists())
 
     def test_complete_cleanup_awards_points(self):
         report = WasteReport.objects.create(
@@ -120,14 +123,15 @@ class WasteTests(APITestCase):
 
         self.client.force_authenticate(user=self.volunteer)
         url = reverse("waste-complete-cleanup", args=[report.id])
-        
-        response = self.client.post(url, {"after_image": self.temp_after_image, "notes": "Cleaned up all cardboard."}, format="multipart")
+
+        response = self.client.post(
+            url, {"after_image": self.temp_after_image, "notes": "Cleaned up all cardboard."}, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         report.refresh_from_db()
         self.assertEqual(report.status, "COMPLETED")
         self.assertIsNotNone(report.after_image)
-        
+
         self.citizen.refresh_from_db()
         self.assertEqual(self.citizen.reward_points, 50)
         self.assertEqual(self.citizen.carbon_score, 10.0)
@@ -145,11 +149,13 @@ class WasteTests(APITestCase):
 
         self.client.force_authenticate(user=self.other_citizen)
         url = reverse("waste-rate", args=[report.id])
-        response = self.client.post(url, {"rating": 5, "feedback": "Great job!"}, format="json")
+        response = self.client.post(
+            url, {"rating": 5, "feedback": "Great job!"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         self.client.force_authenticate(user=self.citizen)
-        response = self.client.post(url, {"rating": 5, "feedback": "Super fast cleanup!"}, format="json")
+        response = self.client.post(
+            url, {"rating": 5, "feedback": "Super fast cleanup!"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(WasteReportRating.objects.filter(report=report).count(), 1)
 
@@ -165,10 +171,11 @@ class WasteTests(APITestCase):
 
         self.client.force_authenticate(user=self.volunteer)
         url = reverse("waste-comments", args=[report.id])
-        
-        response = self.client.post(url, {"content": "I am inspecting this tomorrow."}, format="json")
+
+        response = self.client.post(
+            url, {"content": "I am inspecting this tomorrow."}, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
@@ -193,8 +200,9 @@ class WasteTests(APITestCase):
         )
 
         url = reverse("waste-nearby")
-        response = self.client.get(url, {"latitude": 37.774900, "longitude": -122.419400, "radius": 5.0})
-        
+        response = self.client.get(
+            url, {"latitude": 37.774900, "longitude": -122.419400, "radius": 5.0})
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["title"], "Close Report")
@@ -237,7 +245,8 @@ class WasteTests(APITestCase):
         )
 
         url = reverse("waste-centers-nearby")
-        response = self.client.get(url, {"latitude": 37.774900, "longitude": -122.419400, "radius": 10.0})
+        response = self.client.get(
+            url, {"latitude": 37.774900, "longitude": -122.419400, "radius": 10.0})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["name"], "Green Eco Hub")

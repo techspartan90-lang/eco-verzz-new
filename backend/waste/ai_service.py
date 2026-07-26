@@ -27,7 +27,7 @@ class WasteAI:
             "category": random.choice(waste),
 
             "confidence": round(
-                random.uniform(75,99),
+                random.uniform(75, 99),
                 2
             )
 

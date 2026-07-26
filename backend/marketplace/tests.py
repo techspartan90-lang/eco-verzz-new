@@ -6,6 +6,7 @@ from marketplace.models import Product
 
 User = get_user_model()
 
+
 class MarketplaceTests(APITestCase):
     def setUp(self):
         self.seller = User.objects.create_user(
@@ -41,12 +42,12 @@ class MarketplaceTests(APITestCase):
         self.client.force_authenticate(user=self.buyer)
         response = self.client.post(self.buy_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Verify state
         self.buyer.refresh_from_db()
         self.seller.refresh_from_db()
         self.product.refresh_from_db()
-        self.assertEqual(self.buyer.reward_points, 350) # 500 - 150
+        self.assertEqual(self.buyer.reward_points, 350)  # 500 - 150
         self.assertEqual(self.seller.reward_points, 150)
         self.assertEqual(self.product.quantity, 4)
 

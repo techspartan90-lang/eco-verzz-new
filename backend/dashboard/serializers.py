@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+
 class DashboardDataSerializer(serializers.Serializer):
     role = serializers.CharField()
     username = serializers.CharField()

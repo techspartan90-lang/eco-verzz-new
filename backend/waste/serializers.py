@@ -12,7 +12,8 @@ from .validators import validate_image_size, validate_rating_value
 
 
 class WasteReportTimelineSerializer(serializers.ModelSerializer):
-    changed_by_username = serializers.CharField(source="changed_by.username", read_only=True)
+    changed_by_username = serializers.CharField(
+        source="changed_by.username", read_only=True)
 
     class Meta:
         model = WasteReportTimeline
@@ -61,13 +62,17 @@ class WasteReportRatingSerializer(serializers.ModelSerializer):
 
 class WasteReportSerializer(serializers.ModelSerializer):
     user_username = serializers.CharField(source="user.username", read_only=True)
-    assigned_municipality_username = serializers.CharField(source="assigned_municipality.username", read_only=True)
-    assigned_volunteer_username = serializers.CharField(source="assigned_volunteer.username", read_only=True)
-    
-    image = serializers.ImageField(validators=[validate_image_size], required=False, allow_null=True)
+    assigned_municipality_username = serializers.CharField(
+        source="assigned_municipality.username", read_only=True)
+    assigned_volunteer_username = serializers.CharField(
+        source="assigned_volunteer.username", read_only=True)
+
+    image = serializers.ImageField(
+        validators=[validate_image_size], required=False, allow_null=True)
     before_image = serializers.ImageField(read_only=True)
-    after_image = serializers.ImageField(validators=[validate_image_size], required=False, allow_null=True)
-    
+    after_image = serializers.ImageField(
+        validators=[validate_image_size], required=False, allow_null=True)
+
     timeline = WasteReportTimelineSerializer(many=True, read_only=True)
     comments = WasteReportCommentSerializer(many=True, read_only=True)
     rating = WasteReportRatingSerializer(read_only=True)
@@ -139,8 +144,10 @@ class CompleteCleanupSerializer(serializers.Serializer):
 
 
 class WastePickupRequestSerializer(serializers.ModelSerializer):
-    requester_username = serializers.CharField(source="requester.username", read_only=True)
-    recycler_username = serializers.CharField(source="assigned_recycler.username", read_only=True)
+    requester_username = serializers.CharField(
+        source="requester.username", read_only=True)
+    recycler_username = serializers.CharField(
+        source="assigned_recycler.username", read_only=True)
 
     class Meta:
         model = WastePickupRequest
@@ -158,7 +165,8 @@ class WastePickupRequestSerializer(serializers.ModelSerializer):
             "notes",
             "created_at",
         ]
-        read_only_fields = ["id", "requester", "assigned_recycler", "status", "created_at"]
+        read_only_fields = ["id", "requester",
+                            "assigned_recycler", "status", "created_at"]
 
 
 class CollectionCenterSerializer(serializers.ModelSerializer):

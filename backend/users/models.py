@@ -22,7 +22,7 @@ class User(AbstractUser):
     city = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100, blank=True)
-    
+
     latitude = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -42,4 +42,4 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.username
+        return self.username

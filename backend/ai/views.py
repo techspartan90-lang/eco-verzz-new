@@ -6,6 +6,7 @@ from .serializers import AIScanSerializer
 from .services import AIService
 from .permissions import IsScanOwner
 
+
 class AIScanViewSet(viewsets.ModelViewSet):
     queryset = AIScan.objects.all().order_by("-created_at")
     serializer_class = AIScanSerializer

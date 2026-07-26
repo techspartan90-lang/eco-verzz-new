@@ -1,19 +1,9 @@
 from django.db import models
 from django.conf import settings
-from django.apps import AppConfig
 
-
-class WasteConfig(AppConfig):
-
-    default_auto_field = "django.db.models.BigAutoField"
-
-    name = "waste"
-
-    def ready(self):
-
-        import waste.signals
 
 class WasteReport(models.Model):
+
     STATUS_CHOICES = [
         ("PENDING", "Pending"),
         ("ASSIGNED", "Assigned"),
@@ -76,7 +66,7 @@ class WasteReport(models.Model):
         blank=True,
         null=True
     )
-    
+
     after_image = models.ImageField(
         upload_to="waste/after/",
         blank=True,
@@ -206,8 +196,10 @@ class WastePickupRequest(models.Model):
         related_name="assigned_pickups"
     )
     scheduled_date = models.DateTimeField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="REQUESTED")
-    category = models.CharField(max_length=20, choices=WasteReport.CATEGORY_CHOICES, default="OTHER")
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="REQUESTED")
+    category = models.CharField(
+        max_length=20, choices=WasteReport.CATEGORY_CHOICES, default="OTHER")
     address = models.CharField(max_length=255)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

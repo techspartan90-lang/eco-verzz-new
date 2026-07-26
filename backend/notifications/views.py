@@ -7,6 +7,7 @@ from .models import Notification
 from .serializers import NotificationSerializer
 from .permissions import IsNotificationOwner
 
+
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by("-created_at")
     serializer_class = NotificationSerializer
@@ -27,5 +28,6 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"])
     def mark_all_read(self, request):
-        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        Notification.objects.filter(
+            user=request.user, is_read=False).update(is_read=True)
         return Response({"status": "All notifications marked as read."}, status=status.HTTP_200_OK)

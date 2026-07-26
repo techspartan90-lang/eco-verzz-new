@@ -4,6 +4,7 @@ from .models import User
 from .serializers import UserProfileSerializer
 from .permissions import IsSelf
 
+
 class UserViewSet(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   mixins.ListModelMixin,

@@ -15,6 +15,7 @@ from .serializers import (
 from .permissions import IsAuthorOrReadOnly, IsOrganizerOrReadOnly
 from .services import CommunityService
 
+
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by("-created_at")
     serializer_class = PostSerializer
@@ -50,7 +51,8 @@ class CampaignViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
     def join(self, request, pk=None):
         campaign = self.get_object()
-        joined, participants_count = CommunityService.toggle_join_campaign(campaign, request.user)
+        joined, participants_count = CommunityService.toggle_join_campaign(
+            campaign, request.user)
         return Response({"joined": joined, "participants_count": participants_count}, status=status.HTTP_200_OK)
 
 

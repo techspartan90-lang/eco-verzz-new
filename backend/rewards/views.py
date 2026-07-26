@@ -18,6 +18,7 @@ from .serializers import (
 from .permissions import IsRewardOwner
 from .services import RewardsService
 
+
 class RewardChestViewSet(viewsets.ModelViewSet):
     queryset = RewardChest.objects.all().order_by("-created_at")
     serializer_class = RewardChestSerializer
@@ -76,7 +77,8 @@ class BadgeViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def my_badges(self, request):
-        user_badges = UserBadge.objects.filter(user=request.user).order_by("-unlocked_at")
+        user_badges = UserBadge.objects.filter(
+            user=request.user).order_by("-unlocked_at")
         serializer = UserBadgeSerializer(user_badges, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -124,7 +126,8 @@ class WalletViewSet(viewsets.ViewSet):
 
     def list(self, request):
         user = request.user
-        transactions = WalletTransaction.objects.filter(user=user).order_by("-created_at")[:20]
+        transactions = WalletTransaction.objects.filter(
+            user=user).order_by("-created_at")[:20]
         transaction_serializer = WalletTransactionSerializer(transactions, many=True)
 
         return Response({
