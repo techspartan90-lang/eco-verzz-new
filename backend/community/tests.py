@@ -7,6 +7,7 @@ from community.models import Post, Campaign
 
 User = get_user_model()
 
+
 class CommunityTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -29,7 +30,8 @@ class CommunityTests(APITestCase):
         )
         self.post_list_url = reverse("post-list")
         self.post_like_url = reverse("post-like", kwargs={"pk": self.post.pk})
-        self.campaign_join_url = reverse("campaign-join", kwargs={"pk": self.campaign.pk})
+        self.campaign_join_url = reverse(
+            "campaign-join", kwargs={"pk": self.campaign.pk})
 
     def test_create_post(self):
         self.client.force_authenticate(user=self.user)

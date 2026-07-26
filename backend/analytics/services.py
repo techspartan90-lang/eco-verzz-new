@@ -1,6 +1,7 @@
 from django.db.models import Sum
 from .models import EnvironmentalImpact
 
+
 class AnalyticsService:
     @staticmethod
     def get_user_cumulative_impact(user):

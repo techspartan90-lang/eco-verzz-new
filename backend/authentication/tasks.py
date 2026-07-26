@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def send_async_email(self, subject, to_email, html_template, context):
     """
@@ -16,9 +17,9 @@ def send_async_email(self, subject, to_email, html_template, context):
     try:
         html_content = render_to_string(html_template, context)
         text_content = strip_tags(html_content)
-        
+
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@ecoverse.org')
-        
+
         msg = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
@@ -30,5 +31,6 @@ def send_async_email(self, subject, to_email, html_template, context):
         logger.info(f"Async email '{subject}' sent successfully to {to_email}")
         return True
     except Exception as exc:
-        logger.error(f"Failed to send email '{subject}' to {to_email}: {exc}. Retrying in {self.default_retry_delay}s...")
+        logger.error(
+            f"Failed to send email '{subject}' to {to_email}: {exc}. Retrying in {self.default_retry_delay}s...")
         raise self.retry(exc=exc)

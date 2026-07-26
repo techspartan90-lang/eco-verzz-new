@@ -54,7 +54,7 @@ class AuthenticationTests(APITestCase):
 
     def test_login_success(self):
         # Register user first
-        user = User.objects.create_user(
+        User.objects.create_user(
             username=self.user_data["username"],
             email=self.user_data["email"],
             password=self.user_data["password"],

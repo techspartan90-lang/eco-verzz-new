@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from .services import DashboardService
 from .serializers import DashboardDataSerializer
 
+
 class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 

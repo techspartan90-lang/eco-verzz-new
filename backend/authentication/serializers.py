@@ -6,9 +6,12 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
-    phone = serializers.CharField(validators=[validate_phone_number], required=False, allow_blank=True)
-    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[validate_latitude], required=False, allow_null=True)
-    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[validate_longitude], required=False, allow_null=True)
+    phone = serializers.CharField(
+        validators=[validate_phone_number], required=False, allow_blank=True)
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[
+                                        validate_latitude], required=False, allow_null=True)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[
+                                         validate_longitude], required=False, allow_null=True)
 
     class Meta:
         model = User
@@ -46,9 +49,12 @@ class LoginSerializer(TokenObtainPairSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    phone = serializers.CharField(validators=[validate_phone_number], required=False, allow_blank=True)
-    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[validate_latitude], required=False, allow_null=True)
-    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[validate_longitude], required=False, allow_null=True)
+    phone = serializers.CharField(
+        validators=[validate_phone_number], required=False, allow_blank=True)
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[
+                                        validate_latitude], required=False, allow_null=True)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, validators=[
+                                         validate_longitude], required=False, allow_null=True)
 
     class Meta:
         model = User

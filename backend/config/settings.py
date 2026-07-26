@@ -1,6 +1,8 @@
 """
 Django settings for EcoVerse config project.
 """
+from sentry_sdk.integrations.django import DjangoIntegration
+import sentry_sdk
 from datetime import timedelta
 from pathlib import Path
 import os
@@ -12,8 +14,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file if present
 dotenv.load_dotenv(BASE_DIR / ".env")
 
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 if SENTRY_DSN:
@@ -24,7 +24,8 @@ if SENTRY_DSN:
         send_default_pii=True
     )
 
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-)9$c8lf442(z8ad!5u!p$mp78#_=pet)91$g+)+p+6e+r5ydjj")
+SECRET_KEY = os.getenv(
+    "SECRET_KEY", "django-insecure-)9$c8lf442(z8ad!5u!p$mp78#_=pet)91$g+)+p+6e+r5ydjj")
 
 DEBUG = os.getenv("DEBUG", "True").lower() in ["true", "1", "yes"]
 
@@ -103,7 +104,9 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 
-if DB_NAME and DB_USER and DB_PASSWORD:
+IS_TESTING = "test" in sys.argv or "pytest" in sys.modules or os.getenv("TESTING") == "True"
+
+if DB_NAME and DB_USER and DB_PASSWORD and not IS_TESTING:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -121,6 +124,7 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -165,7 +169,8 @@ REST_FRAMEWORK = {
     }
 }
 
-TESTING = 'test' in sys.argv or 'pytest' in sys.argv or any('pytest' in arg for arg in sys.argv) or "pytest" in sys.modules
+TESTING = 'test' in sys.argv or 'pytest' in sys.argv or any(
+    'pytest' in arg for arg in sys.argv) or "pytest" in sys.modules
 
 if TESTING:
     CACHES = {

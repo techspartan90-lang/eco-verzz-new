@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import User
 
+
 class Product(models.Model):
     CATEGORY_CHOICES = [
         ("PLASTIC", "Plastic"),

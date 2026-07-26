@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class DashboardTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(

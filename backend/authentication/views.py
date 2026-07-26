@@ -53,13 +53,13 @@ class EmailVerificationView(views.APIView):
     def get(self, request, *args, **kwargs):
         serializer = EmailVerificationSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        
+
         user = EmailVerificationService.verify_email_token(
             serializer.validated_data["uid"],
             serializer.validated_data["token"],
             request=request
         )
-        
+
         if user:
             return Response(
                 {"detail": "Email verified successfully!"},
@@ -79,7 +79,7 @@ class PasswordResetRequestView(views.APIView):
     def post(self, request, *args, **kwargs):
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         try:
             user = User.objects.get(email=serializer.validated_data["email"])
             PasswordResetService.send_reset_email(user, request)
@@ -100,13 +100,13 @@ class PasswordResetConfirmView(views.APIView):
     def post(self, request, *args, **kwargs):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         user = PasswordResetService.verify_reset_token(
             serializer.validated_data["uid"],
             serializer.validated_data["token"],
             request=request
         )
-        
+
         if user:
             new_pass = serializer.validated_data["new_password"]
             try:
@@ -151,7 +151,7 @@ class LogoutView(views.APIView):
                     {"detail": "Refresh token is required."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             token = RefreshToken(refresh_token)
             token.blacklist()
 

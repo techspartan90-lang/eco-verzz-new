@@ -1,5 +1,3 @@
-from .models import User
-
 class UserService:
     @staticmethod
     def add_reward_points(user, points):

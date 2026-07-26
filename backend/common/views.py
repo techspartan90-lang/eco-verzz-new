@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from .services import CommonService
 
+
 class HealthCheckView(APIView):
     permission_classes = [AllowAny]
 

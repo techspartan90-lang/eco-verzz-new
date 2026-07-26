@@ -6,4 +6,4 @@ class WasteConfig(AppConfig):
     name = "waste"
 
     def ready(self):
-        import waste.signals
+        import waste.signals  # noqa: F401

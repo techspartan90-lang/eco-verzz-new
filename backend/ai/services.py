@@ -1,9 +1,10 @@
 import os
 import logging
 import requests
-from django.conf import settings
+
 
 logger = logging.getLogger(__name__)
+
 
 class AIService:
     @staticmethod
@@ -13,18 +14,20 @@ class AIService:
     @classmethod
     def detect_waste(cls, image_file):
         url = f"{cls.get_service_url()}/detect"
-        
+
         try:
             # Send file to FastAPI service
-            files = {"file": (image_file.name, image_file.read(), image_file.content_type)}
+            files = {"file": (image_file.name, image_file.read(),
+                              image_file.content_type)}
             # Reset file pointer for future reads if needed
             image_file.seek(0)
-            
+
             response = requests.post(url, files=files, timeout=5)
             if response.status_code == 200:
                 return response.json()
             else:
-                logger.warning(f"AI Service returned status code {response.status_code}. Using local fallback.")
+                logger.warning(
+                    f"AI Service returned status code {response.status_code}. Using local fallback.")
         except Exception as e:
             logger.error(f"Failed to connect to AI Service: {e}. Using local fallback.")
 

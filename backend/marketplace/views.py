@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .models import Product, ProductReview, Wishlist, VendorProfile
+from .models import Product, Wishlist, VendorProfile
 from .serializers import (
     ProductSerializer,
     ProductReviewSerializer,
@@ -15,6 +15,7 @@ from .serializers import (
 from .permissions import IsSellerOrReadOnly
 from .services import MarketplaceService
 
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.filter(is_available=True).order_by("-created_at")
     serializer_class = ProductSerializer
@@ -22,7 +23,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Product.objects.all().order_by("-created_at")
-        
+
         category = self.request.query_params.get("category")
         if category:
             queryset = queryset.filter(category=category.upper())
@@ -97,9 +98,10 @@ class VendorProfileViewSet(viewsets.ModelViewSet):
             defaults={"company_name": f"{request.user.username}'s Store"}
         )
         if request.method in ["PUT", "PATCH"]:
-            serializer = self.get_serializer(profile, data=request.data, partial=(request.method == "PATCH"))
+            serializer = self.get_serializer(
+                profile, data=request.data, partial=(request.method == "PATCH"))
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
+
         return Response(self.get_serializer(profile).data, status=status.HTTP_200_OK)

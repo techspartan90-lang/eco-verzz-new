@@ -6,6 +6,7 @@ from notifications.models import Notification
 
 User = get_user_model()
 
+
 class NotificationTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -23,7 +24,8 @@ class NotificationTests(APITestCase):
             text="You unlocked Forest Stamp!"
         )
         self.list_url = reverse("notification-list")
-        self.mark_read_url = reverse("notification-mark-read", kwargs={"pk": self.notif1.pk})
+        self.mark_read_url = reverse(
+            "notification-mark-read", kwargs={"pk": self.notif1.pk})
         self.mark_all_read_url = reverse("notification-mark-all-read")
 
     def test_list_notifications(self):
@@ -43,4 +45,5 @@ class NotificationTests(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.mark_all_read_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Notification.objects.filter(user=self.user, is_read=False).count(), 0)
+        self.assertEqual(Notification.objects.filter(
+            user=self.user, is_read=False).count(), 0)

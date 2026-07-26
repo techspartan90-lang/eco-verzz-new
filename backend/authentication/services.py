@@ -27,7 +27,7 @@ class EmailVerificationService:
         Sends an email verification link to the user asynchronously using Celery (with fallback).
         """
         uid, token = cls.generate_verification_token(user)
-        
+
         domain = request.get_host() if request else "localhost:8000"
         path = reverse("verify-email")
         verify_url = f"http://{domain}{path}?uid={uid}&token={token}"
@@ -42,13 +42,17 @@ class EmailVerificationService:
 
         # Attempt async Celery email dispatch, fallback to synchronous
         try:
-            send_async_email.delay(subject, user.email, "emails/verify_email.html", context)
+            send_async_email.delay(subject, user.email,
+                                   "emails/verify_email.html", context)
         except Exception as e:
-            logger.warning(f"Celery async dispatch failed ({e}), falling back to direct email dispatch.")
+            logger.warning(
+                f"Celery async dispatch failed ({e}), falling back to direct email dispatch.")
             try:
                 message = f"Hello {user.username},\n\nPlease verify your email address:\n{verify_url}\n"
-                from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@ecoverse.org')
-                send_mail(subject, message, from_email, [user.email], fail_silently=True)
+                from_email = getattr(settings, 'DEFAULT_FROM_EMAIL',
+                                     'noreply@ecoverse.org')
+                send_mail(subject, message, from_email, [
+                          user.email], fail_silently=True)
             except Exception as direct_err:
                 logger.error(f"Failed to send email directly: {direct_err}")
 
@@ -82,7 +86,8 @@ class EmailVerificationService:
             user.save()
 
             # Record audit event
-            ip_address = request.META.get("REMOTE_ADDR") if request and hasattr(request, "META") else None
+            ip_address = request.META.get(
+                "REMOTE_ADDR") if request and hasattr(request, "META") else None
             AuditLog.objects.create(
                 user=user,
                 action="EMAIL_VERIFIED",
@@ -110,7 +115,7 @@ class PasswordResetService:
         Sends a password reset link to the user asynchronously using Celery.
         """
         uid, token = cls.generate_reset_token(user)
-        
+
         domain = request.get_host() if request else "localhost:8000"
         path = reverse("password-reset-confirm")
         reset_url = f"http://{domain}{path}?uid={uid}&token={token}"
@@ -124,13 +129,17 @@ class PasswordResetService:
         logger.info(f"Sending password reset email to {user.email}: {reset_url}")
 
         try:
-            send_async_email.delay(subject, user.email, "emails/password_reset.html", context)
+            send_async_email.delay(subject, user.email,
+                                   "emails/password_reset.html", context)
         except Exception as e:
-            logger.warning(f"Celery dispatch failed ({e}), falling back to direct send.")
+            logger.warning(
+                f"Celery dispatch failed ({e}), falling back to direct send.")
             try:
                 message = f"Hello {user.username},\n\nReset your password at:\n{reset_url}\n"
-                from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@ecoverse.org')
-                send_mail(subject, message, from_email, [user.email], fail_silently=True)
+                from_email = getattr(settings, 'DEFAULT_FROM_EMAIL',
+                                     'noreply@ecoverse.org')
+                send_mail(subject, message, from_email, [
+                          user.email], fail_silently=True)
             except Exception as direct_err:
                 logger.error(f"Failed to send email directly: {direct_err}")
 

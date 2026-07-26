@@ -33,7 +33,7 @@ class FoodDonation(models.Model):
         default=uuid.uuid4,
         editable=False
     )
-    
+
     donor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -65,12 +65,12 @@ class FoodDonation(models.Model):
     )
 
     pickup_address = models.TextField()
-    
+
     latitude = models.DecimalField(
         max_digits=9,
         decimal_places=6
     )
-    
+
     longitude = models.DecimalField(
         max_digits=9,
         decimal_places=6
@@ -122,24 +122,24 @@ class FoodDonationTimeline(models.Model):
         default=uuid.uuid4,
         editable=False
     )
-    
+
     donation = models.ForeignKey(
         FoodDonation,
         on_delete=models.CASCADE,
         related_name="timeline"
     )
-    
+
     status = models.CharField(
         max_length=20,
         choices=FoodDonation.STATUS_CHOICES
     )
-    
+
     changed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True
     )
-    
+
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

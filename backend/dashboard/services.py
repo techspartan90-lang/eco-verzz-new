@@ -2,6 +2,7 @@ from waste.models import WasteReport
 from food.models import FoodDonation
 from rewards.models import DailyMission
 
+
 class DashboardService:
     @staticmethod
     def get_dashboard_data(user):
@@ -25,7 +26,7 @@ class DashboardService:
                 "available_food_donations": FoodDonation.objects.filter(status="PENDING").count(),
                 "my_claimed_donations": FoodDonation.objects.filter(assigned_ngo=user).count(),
             }
-        else: # Citizen, Volunteer, Restaurant, Recycler, Vendor
+        else:  # Citizen, Volunteer, Restaurant, Recycler, Vendor
             data["stats"] = {
                 "my_waste_reports": WasteReport.objects.filter(user=user).count(),
                 "completed_missions": DailyMission.objects.filter(user=user, is_completed=True).count(),
