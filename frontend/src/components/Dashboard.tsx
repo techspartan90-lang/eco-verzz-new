@@ -15,10 +15,14 @@ import { api } from "../services/api";
 import { RealtimeUserBrowserInfo } from "./RealtimeUserBrowserInfo";
 import { RightSidebar } from "./dashboard/RightSidebar";
 import { EcoChatOverlay } from "./dashboard/EcoChatOverlay";
+import { AdminDashboard } from "./AdminDashboard";
+import { UserDashboard } from "./UserDashboard";
 
 interface DashboardProps {
   profile: UserProfile;
   onLogout: () => void;
+  initialView?: string;
+  onBackToWebsite?: () => void;
 }
 
 interface Story {
@@ -75,7 +79,7 @@ const COMMUNITY_STORIES: Story[] = [
   }
 ];
 
-export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initialView }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initialView, onBackToWebsite }) => {
   // Navigation View selection
   const [activeView, setActiveView] = useState<string>(initialView || "home");
 
@@ -789,6 +793,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initial
       audioEngine.playTick();
     }
   };
+
+  if (activeView === "admin" || activeView === "government") {
+    return <AdminDashboard profile={profile} onBackToWebsite={onBackToWebsite || (() => setActiveView("home"))} />;
+  }
+
+  if (activeView === "user_profile" || activeView === "citizen") {
+    return <UserDashboard profile={profile} onBackToWebsite={onBackToWebsite || (() => setActiveView("home"))} />;
+  }
 
   return (
     <div className="w-full min-h-screen bg-[#050507] text-white flex flex-col md:flex-row relative font-sans overflow-x-hidden pb-20 md:pb-0">

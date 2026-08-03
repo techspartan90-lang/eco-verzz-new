@@ -566,7 +566,7 @@ export default function App() {
                 </div>
               </div>
 
-              <Dashboard profile={profile} onLogout={handleLogout} initialView={dashboardView} />
+              <Dashboard profile={profile} onLogout={handleLogout} initialView={dashboardView} onBackToWebsite={() => setScene("website")} />
             </motion.div>
           )}
 

@@ -6,7 +6,8 @@ import {
   Award, Cpu, Globe, AlertTriangle, ArrowRight, Check, 
   Sparkles, ShieldCheck, ChevronRight, Play, ExternalLink, 
   Search, Filter, Star, Info, MessageSquare, Plus, Upload, Trash2, Send,
-  Sliders, ThumbsUp, Map, Clock, CheckCircle2, Shield, Flame, Gift, Compass
+  Sliders, ThumbsUp, Map, Clock, CheckCircle2, Shield, Flame, Gift, Compass,
+  HelpCircle, ChevronDown, CheckCircle, FileText, Download, X, Layers, Activity, Leaf
 } from "lucide-react";
 import { EarthVisualizer } from "./EarthVisualizer";
 import { audioEngine } from "./AudioEngine";
@@ -17,585 +18,297 @@ interface EcoVerzzWebsiteProps {
   profile: UserProfile | null;
 }
 
-interface FeatureItem {
-  id: string;
-  num: number;
-  name: string;
-  tagline: string;
-  category: "ai_waste" | "circular_food" | "community_social" | "business_impact";
-  icon: any;
-  targetDashboardView: string;
-  shortDesc: string;
-  fullDesc: string;
-  sdgs: string[];
-  keyHighlights: string[];
-  gradient: string;
-}
+// SECTION 2: TRUSTED BY PARTNERS
+const TRUSTED_PARTNERS = [
+  { name: "Smart Cities Mission India", category: "Government", logo: "🏛️" },
+  { name: "Brihanmumbai Municipal Corp (BMC)", category: "Municipal", logo: "🏙️" },
+  { name: "Delhi Municipal Corporation (MCD)", category: "Municipal", logo: "🏛️" },
+  { name: "Tata Sustainability Group", category: "CSR", logo: "🏢" },
+  { name: "Infosys Foundation CSR", category: "CSR", logo: "⚡" },
+  { name: "IIT Bombay Eco Innovation Lab", category: "Institution", logo: "🎓" },
+  { name: "Clean Earth Foundation NGO", category: "NGO", logo: "🌱" },
+  { name: "EcoGreen Recyclers Network", category: "Recycle", logo: "♻️" },
+];
 
-const CORE_FEATURES: FeatureItem[] = [
-  {
-    id: "ecoscan",
-    num: 1,
-    name: "EcoScan – Smart Waste Guide",
-    tagline: "Scan • Segregate • Dispose • Earn",
-    category: "ai_waste",
-    icon: Camera,
-    targetDashboardView: "ai_scan",
-    shortDesc: "AI-powered waste identification system that recognizes waste types, recommends color-coded disposal bins, and awards EcoPoints.",
-    fullDesc: "EcoScan uses real-time computer vision and YOLOv8 deep learning models to identify waste items instantly from camera feeds or photos. It provides step-by-step segregation guidance, calculates carbon offsets, and credits EcoPoints directly to user wallets.",
-    sdgs: ["SDG 12: Responsible Consumption", "SDG 13: Climate Action"],
-    keyHighlights: ["Real-time Image Classification", "Color-coded Bin Matcher", "Instant EcoPoints Calculation", "Contamination Prevention Warning"],
-    gradient: "from-emerald-500 to-teal-400"
-  },
-  {
-    id: "ecopulse",
-    num: 2,
-    name: "EcoPulse – Awareness Hub",
-    tagline: "Learn Today. Protect Tomorrow.",
-    category: "community_social",
-    icon: Zap,
-    targetDashboardView: "awareness",
-    shortDesc: "AI-driven awareness hub providing sustainability news, environmental tips, government green schemes, and daily eco lessons.",
-    fullDesc: "EcoPulse aggregates global and regional environmental intelligence into actionable, bite-sized lessons. Users discover green policies, subsidies for solar installation, urban composting techniques, and local eco campaigns.",
-    sdgs: ["SDG 4: Quality Education", "SDG 13: Climate Action"],
-    keyHighlights: ["Curated Eco News Feed", "Government Green Scheme Finder", "Interactive Quiz Modules", "Daily Micro-Habits"],
-    gradient: "from-cyan-500 to-blue-500"
-  },
-  {
-    id: "ecomissions",
-    num: 3,
-    name: "Eco Missions",
-    tagline: "Small Actions. Big Impact.",
-    category: "community_social",
-    icon: Target,
-    targetDashboardView: "missions",
-    shortDesc: "Participate in daily, weekly, and community sustainability challenges to earn badges, certificates, and streak rewards.",
-    fullDesc: "Gamified sustainability challenges designed to build long-term green habits. From zero-single-use-plastic weeks to community tree counts, completing missions unlocks digital badges, XP ranks, and physical rewards.",
-    sdgs: ["SDG 11: Sustainable Cities", "SDG 12: Responsible Consumption"],
-    keyHighlights: ["Daily & Weekly Challenges", "Streak Multiplier Bonuses", "Digital Verified Certificates", "Leaderboard Ranking"],
-    gradient: "from-amber-500 to-orange-400"
-  },
-  {
-    id: "impact_dashboard",
-    num: 4,
-    name: "Environmental Impact Dashboard",
-    tagline: "Every Action Counts.",
-    category: "business_impact",
-    icon: BarChart2,
-    targetDashboardView: "home",
-    shortDesc: "Comprehensive matrix recording waste recycled, food rescued, verified carbon offsets, and UN SDGs supported over time.",
-    fullDesc: "Track your personal and collective environmental footprint with precision analytics. View total CO2 diverted in kilograms, water saved, trees protected, and direct contributions to UN Sustainable Development Goals.",
-    sdgs: ["SDG 13: Climate Action", "SDG 15: Life on Land"],
-    keyHighlights: ["Real-time CO2 Diverted Analytics", "SDG Contribution Radar", "Downloadable ESG Reports", "Communal Impact Aggregation"],
-    gradient: "from-emerald-400 to-green-600"
-  },
-  {
-    id: "circular_marketplace",
-    num: 5,
-    name: "Circular Marketplace",
-    tagline: "Nothing Valuable Becomes Waste.",
-    category: "circular_food",
-    icon: ShoppingBag,
-    targetDashboardView: "marketplace",
-    shortDesc: "Promotes circular economy by enabling users to buy, sell, donate, repair, or exchange pre-loved goods using EcoPoints.",
-    fullDesc: "A zero-waste trade platform where citizens, businesses, and upcyclers buy, swap, or donate items. Prevent electronics, furniture, clothing, and materials from entering landfills by extending product lifecycles.",
-    sdgs: ["SDG 12: Responsible Consumption", "SDG 8: Decent Work"],
-    keyHighlights: ["EcoPoints Currency Exchange", "Upcycled Goods Showcase", "Repair & Refurbish Directory", "Zero-Waste Peer Trade"],
-    gradient: "from-purple-500 to-indigo-400"
-  },
-  {
-    id: "food_rescue",
-    num: 6,
-    name: "Food Rescue Network",
-    tagline: "Save Food. Feed Lives.",
-    category: "circular_food",
-    icon: Heart,
-    targetDashboardView: "food_rescue",
-    shortDesc: "Connects restaurants, hotels, and households with NGOs and food banks to redistribute surplus meals efficiently.",
-    fullDesc: "Eliminate organic food waste by creating real-time alert channels between commercial food donors, food banks, shelters, and volunteers. Track food safety windows, quantity in meals, and delivery routing.",
-    sdgs: ["SDG 2: Zero Hunger", "SDG 12: Responsible Consumption"],
-    keyHighlights: ["Surplus Food Real-Time Map", "NGO Express Pickups", "Food Safety Expiry Countdown", "Methane Emissions Prevented"],
-    gradient: "from-rose-500 to-pink-400"
-  },
-  {
-    id: "community_cleanup",
-    num: 7,
-    name: "Community Cleanup",
-    tagline: "Together for a Cleaner Tomorrow.",
-    category: "community_social",
-    icon: Users,
-    targetDashboardView: "waste_reports",
-    shortDesc: "Organize or volunteer in neighborhood cleanup drives, coastal sweeps, tree plantations, and local conservation events.",
-    fullDesc: "Empower grassroots environmental action. Create cleanup drives, set target cleanup coordinates, mobilize volunteers, request waste bin dispatch from municipalities, and measure total waste collected.",
-    sdgs: ["SDG 11: Sustainable Cities", "SDG 14: Life Below Water"],
-    keyHighlights: ["GPS Cleanup Organizer", "Volunteer RSVP & Check-in", "Equipment Logistics Dispatch", "Before/After Impact Gallery"],
-    gradient: "from-teal-500 to-emerald-400"
-  },
-  {
-    id: "business_csr",
-    num: 8,
-    name: "Business & CSR Portal",
-    tagline: "Sustainability for Every Business.",
-    category: "business_impact",
-    icon: Building2,
-    targetDashboardView: "settings",
-    shortDesc: "Enables organizations to manage corporate ESG goals, launch CSR campaigns, engage employees, and audit SDG metrics.",
-    fullDesc: "Enterprise suite for corporate sustainability management. Companies sponsor local environmental drives, monitor Scope 3 carbon offset verification, engage workforce via eco-challenges, and output compliant ESG audit reports.",
-    sdgs: ["SDG 9: Industry & Innovation", "SDG 17: Partnerships"],
-    keyHighlights: ["Automated Scope 1-3 Carbon Tracking", "Employee Eco-Challenge Hub", "CSR Grant Allocation Portal", "Auditable ESG PDF Exporter"],
-    gradient: "from-blue-600 to-indigo-600"
-  },
-  {
-    id: "recycle_connect",
-    num: 9,
-    name: "Recycle Connect",
-    tagline: "Turn Waste into Wealth.",
-    category: "ai_waste",
-    icon: RefreshCw,
-    targetDashboardView: "ai_scan",
-    shortDesc: "Direct bridge connecting citizens with verified scrap recyclers. Sell recyclables, schedule pickups, and earn direct income.",
-    fullDesc: "Monetize sorted scrap materials. Check live market rates for paper, cardboard, copper, e-waste, and plastics. Schedule doorstep collection by certified recycling partners and receive instant payouts or EcoPoints.",
-    sdgs: ["SDG 8: Decent Work", "SDG 12: Responsible Consumption"],
-    keyHighlights: ["Live Scrap Commodity Rates", "Doorstep Pickup Dispatch", "Verified Recycler Rating System", "Instant Wallet Monetization"],
-    gradient: "from-amber-400 to-emerald-500"
-  },
-  {
-    id: "user_profile",
-    num: 10,
-    name: "User Profile & Identity",
-    tagline: "Your Sustainability Identity.",
-    category: "community_social",
-    icon: User,
-    targetDashboardView: "passport",
-    shortDesc: "Digital sustainability portfolio showcasing EcoPoints, verified impact rank, completed missions, and supported SDGs.",
-    fullDesc: "Your immutable green resume. Displays your cumulative carbon offset score, verified badges, rank progression from Citizen to Planetary Pioneer, and shareable QR code for public environmental credentials.",
-    sdgs: ["SDG 13: Climate Action"],
-    keyHighlights: ["Dynamic XP & Rank Progress", "Verified Digital Badge Shelf", "Public Shareable Green Passport", "Personal Carbon Ledger"],
-    gradient: "from-violet-500 to-purple-500"
-  },
-  {
-    id: "smart_notifications",
-    num: 11,
-    name: "Smart Notification Centre",
-    tagline: "Never Miss an Opportunity to Impact.",
-    category: "community_social",
-    icon: Bell,
-    targetDashboardView: "telemetry",
-    shortDesc: "Real-time alerts for mission deadlines, recycler doorstep arrivals, nearby food rescues, and verified report updates.",
-    fullDesc: "Intelligent push & ledger notifications customized to your location and interests. Receive instant updates when a nearby restaurant posts surplus food or when a municipal team resolves your submitted EcoReport.",
-    sdgs: ["SDG 11: Sustainable Cities"],
-    keyHighlights: ["Real-time Geo-fenced Alerts", "Recycler ETA Dispatch Tracking", "Urgent Food Rescue Pings", "Resolution Ledger Logs"],
-    gradient: "from-emerald-400 to-cyan-500"
-  },
-  {
-    id: "location_services",
-    num: 12,
-    name: "Location Services",
-    tagline: "Connecting Sustainability Around You.",
-    category: "ai_waste",
-    icon: MapPin,
-    targetDashboardView: "telemetry",
-    shortDesc: "GPS-enabled spatial mapping of recycling hubs, illegal dumping hotspots, cleanup events, and food donation points.",
-    fullDesc: "Interactive GIS ecosystem mapping nearby recycling drop-offs, active volunteer drives, hazardous waste collection centers, and live pollution reports with navigation and distance estimates.",
-    sdgs: ["SDG 11: Sustainable Cities", "SDG 15: Life on Land"],
-    keyHighlights: ["Interactive GIS Green Map", "Distance & Route Navigation", "Drop-Off Bin Status Indicators", "Hotspot Heatmap Overlay"],
-    gradient: "from-blue-500 to-teal-400"
-  },
-  {
-    id: "rewards_recognition",
-    num: 13,
-    name: "Rewards & Recognition",
-    tagline: "Every Good Action Deserves Recognition.",
-    category: "community_social",
-    icon: Award,
-    targetDashboardView: "rewards",
-    shortDesc: "Motivates eco-friendly behavior with levels, badges, streaks, leaderboards, gift vouchers, and official certificates.",
-    fullDesc: "Reward engine turning ecological responsibility into tangible perks. Redeem EcoPoints for sustainable brand discounts, public transport passes, tree planting sponsorships, or official institutional certificates.",
-    sdgs: ["SDG 12: Responsible Consumption"],
-    keyHighlights: ["Communal Leaderboard Ladders", "Voucher Marketplace Redemption", "Institutional Certificates", "Streak Bonus Chests"],
-    gradient: "from-yellow-400 to-amber-500"
-  },
-  {
-    id: "ai_insights",
-    num: 14,
-    name: "AI Insights & Recommendations",
-    tagline: "Smarter Choices for a Greener Future.",
-    category: "ai_waste",
-    icon: Cpu,
-    targetDashboardView: "eco_ai",
-    shortDesc: "Analyzes user habits and waste metrics to deliver personalized eco recommendations and actionable reduction plans.",
-    fullDesc: "An AI advisor powered by LLMs that analyzes consumption patterns, suggests low-carbon alternative products, identifies recurring single-use plastics in your scans, and delivers customized green lifestyle plans.",
-    sdgs: ["SDG 12: Responsible Consumption", "SDG 13: Climate Action"],
-    keyHighlights: ["Personalized Carbon Reduction Plan", "Smart Product Swap Suggestions", "AI Lifestyle Coaching", "Predictive Waste Forecasting"],
-    gradient: "from-indigo-500 to-blue-400"
-  },
-  {
-    id: "ecolink_social",
-    num: 15,
-    name: "EcoLink – Social Network",
-    tagline: "Share Impact. Inspire Change.",
-    category: "community_social",
-    icon: Globe,
-    targetDashboardView: "eco_social",
-    shortDesc: "Dedicated social feed for citizens, businesses, and NGOs to post green achievements, stories, and sustainability reels.",
-    fullDesc: "A positive environmental social community. Share photos of your planted saplings, post zero-waste meal prep tutorials, engage in discussions, upvote verified impact stories, and build a green follower network.",
-    sdgs: ["SDG 17: Partnerships"],
-    keyHighlights: ["Impact Story & Reel Feed", "Verified Green Creator Badges", "Communal Group Discussions", "Upvote & Reshare Ecosystem"],
-    gradient: "from-teal-400 to-cyan-500"
-  },
-  {
-    id: "ecoreport",
-    num: 16,
-    name: "EcoReport – Environmental Reporting",
-    tagline: "See It. Report It. Protect It.",
-    category: "business_impact",
-    icon: AlertTriangle,
-    targetDashboardView: "waste_reports",
-    shortDesc: "Report illegal dumping, water leaks, or overflowing bins with photos and GPS. Directs verified reports to authorities.",
-    fullDesc: "Civic environmental watchdog platform. Snap a photo of illegal waste dumping or water pipeline leaks. EcoReport tags GPS coordinates, verifies report legitimacy via AI vision, and routes ticket to municipal authorities.",
-    sdgs: ["SDG 11: Sustainable Cities", "SDG 16: Peace & Strong Institutions"],
-    keyHighlights: ["GPS Auto-Tagging & Photo Proof", "AI Duplicate Report Filter", "Direct Municipal Ticket Routing", "Status Resolution Tracker"],
-    gradient: "from-rose-500 to-red-600"
-  }
+// SECTION 3: PLATFORM OVERVIEW MODULES
+const PLATFORM_OVERVIEW_CARDS = [
+  { id: "ecoscan", title: "EcoScan AI", subtitle: "YOLOv8 Waste Identification", desc: "Recognizes plastic, glass, e-waste, and organics instantly with bin guidance.", metrics: "99.4% Precision", icon: Camera, color: "from-emerald-500 to-teal-400" },
+  { id: "complaint", title: "Complaint Reporting", subtitle: "Civic Action Triage", desc: "Report illegal dumping or overflowing bins with auto GPS location tagging.", metrics: "1.4 hr Avg SLA", icon: AlertTriangle, color: "from-amber-500 to-rose-400" },
+  { id: "food_rescue", title: "Food Rescue", subtitle: "Zero Surplus Hunger", desc: "Connects hotels and restaurants with NGOs to redistribute surplus meals.", metrics: "142,000+ Meals Saved", icon: Heart, color: "from-rose-500 to-pink-400" },
+  { id: "carbon_calc", title: "Carbon Calculator", subtitle: "ISO 14064 Accounting", desc: "Computes personal and enterprise carbon footprint with reduction goals.", metrics: "Realtime Offset Matrix", icon: Sliders, color: "from-cyan-500 to-blue-500" },
+  { id: "recycler_net", title: "Recycler Network", subtitle: "Logistics Optimization", desc: "Connects citizens with verified local recycling facilities for doorstep pickups.", metrics: "480+ Recycler Hubs", icon: RefreshCw, color: "from-teal-400 to-emerald-600" },
+  { id: "rewards", title: "EcoRewards & Vault", subtitle: "Gamified ESG Currency", desc: "Earn EcoPoints for green actions and exchange for Madagascar tree planting.", metrics: "1.2M Points Claimed", icon: Award, color: "from-amber-400 to-orange-500" },
+  { id: "ai_bot", title: "AI Assistant", subtitle: "Floating Sustainability Copilot", desc: "Ask instant questions about e-waste disposal, subsidies, and footprints.", metrics: "Instant 24/7 Intel", icon: Cpu, color: "from-purple-500 to-indigo-500" },
+  { id: "analytics", title: "Analytics Dashboard", subtitle: "Municipal Telemetry", desc: "Live heatmaps, ward segregation accuracy ratings, and CO2 offset trends.", metrics: "14 Ward Nodes Live", icon: BarChart2, color: "from-blue-500 to-cyan-400" },
+];
+
+// SECTION 4: TIMELINE STEPS
+const TIMELINE_STEPS = [
+  { step: 1, title: "Upload Waste Image", desc: "Snap a photo of any waste item via mobile camera or web scanner.", icon: Upload },
+  { step: 2, title: "AI Detection", desc: "Computer vision deep learning model identifies material composition in <20ms.", icon: Cpu },
+  { step: 3, title: "Confidence Score", desc: "System verifies item authenticity and returns 99%+ material confidence score.", icon: CheckCircle },
+  { step: 4, title: "Nearest Recycler", desc: "GPS routes item to nearest certified recycling hub or municipal bin.", icon: MapPin },
+  { step: 5, title: "Reward", desc: "EcoPoints and XP tokens credited directly to user digital wallet.", icon: Award },
+  { step: 6, title: "Carbon Saved", desc: "Offset ledger records avoided CO2 emissions and updates biosphere stats.", icon: Zap },
+  { step: 7, title: "Impact Dashboard", desc: "Actions aggregated into municipal, CSR, and global SDG reports.", icon: BarChart2 },
+];
+
+// SECTION 5: AI ARCHITECTURE NODES
+const AI_TECH_NODES = [
+  { id: "cv", name: "Computer Vision", desc: "Real-time frame processing for high-density waste material recognition.", active: true },
+  { id: "yolo", name: "YOLOv8 Detection", desc: "Multi-class bounding box segmentation for mixed waste items.", active: true },
+  { id: "ocr", name: "OCR Serial Reader", desc: "Reads serial numbers on e-waste, batteries, and appliances for tracking.", active: true },
+  { id: "ml", name: "Machine Learning", desc: "Continuous model refinement based on localized municipal waste patterns.", active: true },
+  { id: "pred", name: "Predictive Analytics", desc: "Forecasts bin fill rates and peak food surplus hours for NGOs.", active: true },
+  { id: "fraud", name: "Fraud Shield", desc: "Perceptual hashing blocks duplicate photo submissions and fake reward claims.", active: true },
 ];
 
 export const EcoVerzzWebsite: React.FC<EcoVerzzWebsiteProps> = ({ onLaunchApp, profile }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [activeDemoFeature, setActiveDemoFeature] = useState<FeatureItem | null>(CORE_FEATURES[0]);
-  
-  // Interactive EcoScan Simulator State
-  const [scanSample, setScanSample] = useState<"bottle" | "ewaste" | "organic" | "cardboard">("bottle");
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<any>(null);
+  // Navigation & Interactive States
+  const [activePortalTab, setActivePortalTab] = useState<"citizen" | "gov" | "csr" | "recycler" | "food">("gov");
+  const [selectedTimelineStep, setSelectedTimelineStep] = useState(1);
+  const [calcElectricity, setCalcElectricity] = useState(250); // kWh/month
+  const [calcCommute, setCalcCommute] = useState(300); // km/month
+  const [calcWasteKg, setCalcWasteKg] = useState(40); // kg/month
+  const [pricingCycle, setPricingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [faqCategory, setFaqCategory] = useState("all");
+  const [faqSearch, setFaqSearch] = useState("");
+  const [activeFaqId, setActiveFaqId] = useState<number | null>(1);
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatQuery, setChatQuery] = useState("");
+  const [chatMessages, setChatMessages] = useState([
+    { sender: "ai", text: "Hello! I'm EcoVerzz AI Copilot. How can I help you build a greener community today?" }
+  ]);
 
-  // Interactive Impact Calculator State
-  const [wasteAmountKg, setWasteAmountKg] = useState<number>(45);
+  // Carbon Calculator Calculation
+  const calculatedCO2 = Math.round((calcElectricity * 0.85) + (calcCommute * 0.21) + (calcWasteKg * 1.5));
+  const treesToOffset = Math.ceil(calculatedCO2 / 22);
 
-  // Interactive Eco Missions State
-  const [completedMissions, setCompletedMissions] = useState<string[]>([]);
+  // Floating Chat Bot Handler
+  const handleSendChat = (e?: React.FormEvent, customMsg?: string) => {
+    if (e) e.preventDefault();
+    const msg = customMsg || chatQuery;
+    if (!msg.trim()) return;
 
-  // Interactive CSR Metric Simulator State
-  const [employeeCount, setEmployeeCount] = useState<number>(250);
-
-  // Interactive AI Advice State
-  const [aiHabitQuery, setAiHabitQuery] = useState<string>("How do I eliminate single-use plastic at my office?");
-  const [aiAdviceReply, setAiAdviceReply] = useState<string | null>(null);
-
-  // Interactive EcoReport State
-  const [reportType, setReportType] = useState<string>("Illegal Dumping");
-  const [reportSubmitted, setReportSubmitted] = useState<boolean>(false);
-
-  // Filter Features
-  const filteredFeatures = selectedCategory === "all"
-    ? CORE_FEATURES
-    : CORE_FEATURES.filter(f => f.category === selectedCategory);
-
-  // Run mock AI waste scanner demo
-  const handleRunScanDemo = (type: "bottle" | "ewaste" | "organic" | "cardboard") => {
+    setChatMessages(prev => [...prev, { sender: "user", text: msg }]);
+    if (!customMsg) setChatQuery("");
     audioEngine.playTick();
-    setScanSample(type);
-    setIsScanning(true);
-    setScanResult(null);
 
     setTimeout(() => {
-      audioEngine.playSuccessChime();
-      setIsScanning(false);
-      const dataMap = {
-        bottle: {
-          title: "PET Plastic Water Bottle",
-          category: "Recyclable Plastic (Type 1 PET)",
-          confidence: "99.4%",
-          binColor: "Blue Recycling Bin 🟦",
-          ecoPoints: "+25 EcoPoints",
-          co2Saved: "0.18 kg CO2",
-          instructions: "Rinse bottle, crush body to save space, remove cap if non-recyclable."
-        },
-        ewaste: {
-          title: "Discarded Smartphone Lithium Battery",
-          category: "Hazardous E-Waste",
-          confidence: "97.8%",
-          binColor: "Special Red E-Waste Kiosk 🟥",
-          ecoPoints: "+100 EcoPoints",
-          co2Saved: "1.45 kg CO2",
-          instructions: "Do not incinerate or place in general trash. Schedule Recycle Connect doorstep pickup."
-        },
-        organic: {
-          title: "Fruit Peels & Vegetable Scrap",
-          category: "Organic Compostable Waste",
-          confidence: "98.9%",
-          binColor: "Green Organic Bin 🟩",
-          ecoPoints: "+15 EcoPoints",
-          co2Saved: "0.42 kg CO2",
-          instructions: "Ideal for home composting or municipal organic biogas collection."
-        },
-        cardboard: {
-          title: "Corrugated Shipping Box",
-          category: "Paper & Cardboard",
-          confidence: "99.1%",
-          binColor: "Blue Paper Bin 🟦",
-          ecoPoints: "+30 EcoPoints",
-          co2Saved: "0.65 kg CO2",
-          instructions: "Flatten box completely and remove any plastic adhesive tape."
-        }
-      };
-      setScanResult(dataMap[type]);
-    }, 1200);
-  };
+      let reply = "EcoVerzz AI is scanning municipal databases...";
+      const lower = msg.toLowerCase();
+      if (lower.includes("battery") || lower.includes("e-waste")) {
+        reply = "⚡ Batteries and e-waste should be deposited at certified EcoVerzz E-Nodes. Nearest center: Sector 14 E-Waste Hub (1.2 km away). You earn 50 EcoPoints per battery recycled!";
+      } else if (lower.includes("footprint") || lower.includes("carbon")) {
+        reply = "🌱 Your estimated household footprint is processed using ISO 14064 standards. Use our Carbon Calculator section to benchmark your monthly savings!";
+      } else if (lower.includes("scheme") || lower.includes("government")) {
+        reply = "🏛️ Active Government Green Schemes: PM Surya Ghar Muft Bijli Yojana (Solar subsidy up to ₹78,000) & National Clean Air Programme (NCAP) Municipal Grants.";
+      } else {
+        reply = "✨ EcoVerzz AI continuously optimizes waste collection and surplus food distribution using real-time YOLOv8 deep learning. Explore our Platform Overview to see live telemetry!";
+      }
 
-  useEffect(() => {
-    handleRunScanDemo("bottle");
-  }, []);
-
-  // Handle AI Advice Prompt
-  const handleGenerateAiAdvice = () => {
-    audioEngine.playTick();
-    setAiAdviceReply(null);
-    setTimeout(() => {
+      setChatMessages(prev => [...prev, { sender: "ai", text: reply }]);
       audioEngine.playSuccessChime();
-      setAiAdviceReply(
-        `🌱 Custom Action Plan for: "${aiHabitQuery}"\n\n1. Replace disposable coffee cups with double-walled stainless steel flasks (+40 EcoPoints/week).\n2. Install a filtered water station instead of ordering plastic 20L carboys.\n3. Implement a central digital invoice system to save ~12kg paper monthly.`
-      );
-    }, 800);
+    }, 1000);
   };
 
   return (
-    <div className="min-h-screen bg-[#050811] text-gray-100 font-sans selection:bg-emerald-500 selection:text-gray-950">
+    <div className="min-h-screen bg-[#07090e] text-slate-100 font-sans selection:bg-emerald-500 selection:text-slate-950 overflow-x-hidden">
       
-      {/* 1. TOP NAVBAR */}
-      <header className="sticky top-0 z-50 bg-[#050811]/90 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 py-4 flex items-center justify-between max-w-[1440px] mx-auto">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-400 flex items-center justify-center text-gray-950 font-black text-xl shadow-lg shadow-emerald-500/20">
-            🌱
+      {/* GLOBAL FLOATING HEADER */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#080c14]/80 backdrop-blur-2xl border-b border-slate-800/80 transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-300 p-0.5 shadow-lg shadow-emerald-500/20">
+              <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                <Leaf className="w-5 h-5 text-emerald-400 animate-pulse" />
+              </div>
+            </div>
+            <div>
+              <span className="font-extrabold text-lg tracking-tight text-white font-sans uppercase">
+                Eco<span className="text-emerald-400">Verzz</span> <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 ml-1 font-mono font-bold">AI</span>
+              </span>
+              <p className="text-[10px] text-slate-400 font-medium tracking-wide">Smart City & Sustainability Platform</p>
+            </div>
           </div>
-          <div>
-            <span className="text-xl font-black tracking-tight text-white flex items-center gap-2">
-              EcoVerzz <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono">AI v2.5</span>
-            </span>
-            <span className="text-[10px] text-gray-400 font-mono block -mt-1">Sustainability Ecosystem</span>
+
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-8 text-xs font-semibold text-slate-300">
+            <a href="#overview" className="hover:text-emerald-400 transition-colors">Platform Overview</a>
+            <a href="#how-it-works" className="hover:text-emerald-400 transition-colors">How It Works</a>
+            <a href="#ai-tech" className="hover:text-emerald-400 transition-colors">AI Technology</a>
+            <a href="#portals" className="hover:text-emerald-400 transition-colors">Enterprise Portals</a>
+            <a href="#calculator" className="hover:text-emerald-400 transition-colors">Carbon Calculator</a>
+            <a href="#pricing" className="hover:text-emerald-400 transition-colors">Pricing</a>
+          </nav>
+
+          {/* Action CTAs */}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => onLaunchApp("admin")}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-emerald-500/40 transition-all cursor-pointer"
+            >
+              <Shield className="w-3.5 h-3.5 text-emerald-400" /> Admin Portal
+            </button>
+            <button 
+              onClick={() => onLaunchApp("user_profile")}
+              className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-emerald-500/10 flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4 text-slate-950" /> Launch Platform
+            </button>
           </div>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-8 text-xs font-mono font-medium text-gray-300">
-          <a href="#features" className="hover:text-emerald-400 transition-colors">16 Core Features</a>
-          <a href="#demo" className="hover:text-emerald-400 transition-colors">Interactive AI Demo</a>
-          <a href="#impact" className="hover:text-emerald-400 transition-colors">SDG Impact</a>
-          <a href="#one-liner" className="hover:text-emerald-400 transition-colors">Executive Summary</a>
-        </nav>
-
-        {/* Action CTA Buttons */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => { audioEngine.playSuccessChime(); onLaunchApp("home"); }}
-            className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-gray-950 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
-          >
-            <Zap className="w-4 h-4" /> Launch App / Dashboard
-          </button>
         </div>
       </header>
 
-      {/* 2. HERO BANNER SECTION */}
-      <section className="relative pt-12 pb-20 px-4 md:px-8 max-w-[1440px] mx-auto overflow-hidden">
-        {/* Glow ambient spots */}
+      {/* SECTION 1: WORLD-CLASS HERO SECTION */}
+      <section className="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden bg-dot-grid">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[140px] pointer-events-none" />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
-          
-          {/* Left Column: Headline */}
-          <div className="lg:col-span-7 text-left space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-xs">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
-              <span>Next-Gen AI Sustainability & Circular Economy Platform</span>
-            </div>
+        <div className="absolute top-1/3 right-10 w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
-              Empowering Citizens & Businesses for a <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Cleaner Planet</span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-gray-300 font-light leading-relaxed max-w-2xl">
-              EcoVerzz AI is a unified ecosystem integrating computer vision waste segregation, surplus food rescue, circular marketplace, civic environmental reporting, and reward-driven community action.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <a
-                href="#features"
-                onClick={() => audioEngine.playTick()}
-                className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black rounded-2xl text-xs uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer shadow-xl shadow-emerald-500/20"
-              >
-                Explore All 16 Features <ArrowRight className="w-4 h-4" />
-              </a>
-
-              <a
-                href="#demo"
-                onClick={() => audioEngine.playTick()}
-                className="px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white font-bold rounded-2xl text-xs uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer"
-              >
-                <Play className="w-4 h-4 text-emerald-400 fill-current" /> Try Live Interactive Demos
-              </a>
-            </div>
-
-            {/* Quick Metrics Header Bar */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 font-mono text-xs">
-              <div>
-                <span className="text-gray-400 text-[10px] uppercase block">Core Features</span>
-                <span className="text-2xl font-black text-emerald-400">16 Modules</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Left Hero Column: Headline & CTAs */}
+            <div className="lg:col-span-7 text-center lg:text-left space-y-6">
+              
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Next-Gen Smart City Infrastructure • AI Powered</span>
               </div>
-              <div>
-                <span className="text-gray-400 text-[10px] uppercase block">AI Accuracy</span>
-                <span className="text-2xl font-black text-teal-300">99.2%</span>
-              </div>
-              <div>
-                <span className="text-gray-400 text-[10px] uppercase block">SDGs Supported</span>
-                <span className="text-2xl font-black text-cyan-400">7 Goals</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Right Column: 3D Earth Globe Visualizer Card */}
-          <div className="lg:col-span-5 relative flex justify-center">
-            <div className="w-full max-w-md bg-gradient-to-b from-[#0b1222] to-[#080d1a] border border-emerald-500/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden backdrop-blur-2xl">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  Live Biosphere Visualizer
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.1]">
+                AI-Powered Sustainable <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
+                  Smart City Platform
                 </span>
-                <span className="text-[10px] font-mono text-gray-400">3D Interactive</span>
-              </div>
+              </h1>
 
-              <div className="w-full h-72 rounded-2xl relative overflow-hidden bg-black/60 border border-white/10 flex items-center justify-center">
-                <EarthVisualizer scene="healing" healingStage={5} zoomLevel="normal" />
-              </div>
+              <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                Helping citizens, governments, recyclers, NGOs, and businesses build cleaner and smarter communities using Artificial Intelligence, Computer Vision, and real-time carbon telemetry.
+              </p>
 
-              <div className="mt-4 p-3 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center font-mono text-xs">
-                <div>
-                  <span className="text-gray-400 text-[9px] block">ECOSYSTEM HEALED</span>
-                  <span className="text-emerald-400 font-bold text-sm">100% Planetary Balance</span>
-                </div>
-                <button
-                  onClick={() => { audioEngine.playSuccessChime(); onLaunchApp("home"); }}
-                  className="px-3.5 py-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded-xl text-[10px] font-bold uppercase hover:bg-emerald-500/30 transition-all cursor-pointer"
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                <button 
+                  onClick={() => onLaunchApp("ai_scan")}
+                  className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider hover:opacity-90 transition-all shadow-xl shadow-emerald-500/25 flex items-center gap-2 cursor-pointer"
                 >
-                  Enter Platform
+                  <Camera className="w-4 h-4" /> Start Waste Scanning
+                </button>
+                <a 
+                  href="#overview"
+                  className="px-6 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700 hover:border-emerald-500/50 text-slate-100 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Globe className="w-4 h-4 text-emerald-400" /> Explore Platform
+                </a>
+                <button 
+                  onClick={() => setShowDemoModal(true)}
+                  className="px-5 py-3.5 rounded-2xl bg-slate-800/40 text-slate-300 hover:text-white font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Play className="w-4 h-4 text-cyan-400 fill-cyan-400" /> Watch Live Demo
                 </button>
               </div>
+
+              {/* Live Statistics Counters Ticker */}
+              <div className="pt-8 border-t border-slate-800/80 grid grid-cols-3 gap-4 text-center lg:text-left">
+                <div>
+                  <div className="text-2xl sm:text-3xl font-black text-white">2.4M+</div>
+                  <div className="text-xs text-slate-400">Waste Items Segregated</div>
+                </div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-black text-emerald-400">142T</div>
+                  <div className="text-xs text-slate-400">CO₂ Diverted</div>
+                </div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-black text-teal-300">480+</div>
+                  <div className="text-xs text-slate-400">Smart Municipal Wards</div>
+                </div>
+              </div>
             </div>
-          </div>
 
+            {/* Right Hero Column: Animated Interactive 3D Earth Visualizer */}
+            <div className="lg:col-span-5 flex justify-center relative">
+              <div className="relative w-full max-w-md aspect-square rounded-full flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-emerald-500/10 blur-2xl animate-pulse" />
+                <EarthVisualizer scene="website" healingStage={5} zoomLevel="normal" />
+                
+                {/* Floating AI Status Badges */}
+                <div className="absolute top-4 left-0 p-3 rounded-2xl bg-slate-900/90 border border-emerald-500/30 backdrop-blur-xl shadow-xl flex items-center gap-3 text-xs">
+                  <Cpu className="w-4 h-4 text-emerald-400" />
+                  <div>
+                    <div className="font-bold text-white">YOLOv8 Vision Active</div>
+                    <div className="text-[10px] text-slate-400">99.4% Recognition Speed</div>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-6 right-0 p-3 rounded-2xl bg-slate-900/90 border border-cyan-500/30 backdrop-blur-xl shadow-xl flex items-center gap-3 text-xs">
+                  <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                  <div>
+                    <div className="font-bold text-white">ISO 14064 Certified</div>
+                    <div className="text-[10px] text-slate-400">Realtime Carbon Ledger</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 
-      {/* 3. EXECUTIVE ONE-LINER BANNER */}
-      <section id="one-liner" className="py-12 px-4 md:px-8 bg-gradient-to-r from-[#0a1426] via-[#0b1b2d] to-[#081524] border-y border-emerald-500/20">
-        <div className="max-w-5xl mx-auto text-center space-y-4">
-          <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-xs uppercase tracking-widest inline-block">
-            🌟 EcoVerzz in One Line
-          </span>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-relaxed max-w-4xl mx-auto font-sans">
-            "EcoVerzz AI is an AI-powered sustainability ecosystem that empowers citizens, businesses, NGOs, recyclers, and governments to collaborate through smart waste management, circular economy, community engagement, environmental reporting, and reward-driven sustainable actions."
-          </h2>
+      {/* SECTION 2: TRUSTED BY PARTNERS MARQUEE */}
+      <section className="py-12 border-y border-slate-800/80 bg-slate-950/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 text-center">
+          <p className="text-xs uppercase tracking-widest font-extrabold text-slate-400">
+            Trusted by Government Bodies, Smart Cities, CSR Leaders & NGOs
+          </p>
         </div>
-      </section>
-
-      {/* 4. ALL 16 CORE FEATURES INTERACTIVE SHOWCASE */}
-      <section id="features" className="py-20 px-4 md:px-8 max-w-[1440px] mx-auto text-left">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
-          <div>
-            <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest block mb-2">
-              COMPREHENSIVE ECOSYSTEM SUITE
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-              16 Core AI & Sustainability Features
-            </h2>
-            <p className="text-sm text-gray-400 mt-2 max-w-xl font-light">
-              Explore all 16 modules. Click any feature card to view its live hands-on demo or launch directly into the active dashboard!
-            </p>
-          </div>
-
-          {/* Category Filters */}
-          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl font-mono text-xs">
-            {[
-              { id: "all", label: "All 16 Features" },
-              { id: "ai_waste", label: "AI & Waste Guide" },
-              { id: "circular_food", label: "Circular & Food" },
-              { id: "community_social", label: "Community & Social" },
-              { id: "business_impact", label: "Enterprise & Impact" }
-            ].map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => { audioEngine.playTick(); setSelectedCategory(cat.id); }}
-                className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer ${
-                  selectedCategory === cat.id
-                    ? "bg-emerald-500 text-gray-950 font-black shadow-md"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {cat.label}
-              </button>
+        <div className="overflow-hidden whitespace-nowrap relative">
+          <div className="inline-flex gap-8 animate-world-rotate">
+            {[...TRUSTED_PARTNERS, ...TRUSTED_PARTNERS].map((partner, idx) => (
+              <div key={idx} className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-900/80 border border-slate-800 text-slate-300 text-xs font-bold hover:border-emerald-500/40 transition-all shrink-0">
+                <span className="text-base">{partner.logo}</span>
+                <span>{partner.name}</span>
+                <span className="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-emerald-400 font-mono">{partner.category}</span>
+              </div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredFeatures.map((feat) => {
-            const IconComponent = feat.icon;
-            const isSelected = activeDemoFeature?.id === feat.id;
+      {/* SECTION 3: PLATFORM OVERVIEW MODULES */}
+      <section id="overview" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Unified Sustainability Suite</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">Comprehensive AI Ecosystem</h2>
+          <p className="text-sm text-slate-400 mt-3">From real-time computer vision waste classification to municipal carbon telemetry and food rescue distribution.</p>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {PLATFORM_OVERVIEW_CARDS.map((card) => {
+            const Icon = card.icon;
             return (
               <motion.div
-                key={feat.id}
+                key={card.id}
                 whileHover={{ y: -6 }}
-                onClick={() => { audioEngine.playTick(); setActiveDemoFeature(feat); }}
-                className={`bg-gradient-to-b from-[#090e1a] to-[#070b14] border rounded-3xl p-6 shadow-xl flex flex-col justify-between cursor-pointer transition-all duration-300 relative group overflow-hidden ${
-                  isSelected 
-                    ? "border-emerald-400/80 shadow-[0_0_30px_rgba(16,185,129,0.25)]" 
-                    : "border-white/10 hover:border-emerald-500/40"
-                }`}
+                onClick={() => onLaunchApp(card.id)}
+                className="p-6 rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/80 to-slate-950 hover:border-emerald-500/40 transition-all cursor-pointer group relative overflow-hidden flex flex-col justify-between"
               >
-                {/* Number Badge */}
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`p-3.5 rounded-2xl bg-gradient-to-tr ${feat.gradient} text-gray-950 font-black shadow-lg`}>
-                    <IconComponent className="w-6 h-6" />
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${card.color} p-0.5 mb-5`}>
+                  <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                    <Icon className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
                   </div>
-                  <span className="font-mono font-black text-2xl text-white/20 group-hover:text-emerald-400/60 transition-colors">
-                    #{feat.num.toString().padStart(2, "0")}
-                  </span>
                 </div>
 
-                {/* Content */}
                 <div>
-                  <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest block font-bold mb-1">
-                    "{feat.tagline}"
-                  </span>
-                  <h3 className="text-base font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">
-                    {feat.name}
-                  </h3>
-                  <p className="text-xs text-gray-400 font-light leading-relaxed mb-4">
-                    {feat.shortDesc}
-                  </p>
+                  <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold">{card.subtitle}</span>
+                  <h3 className="text-lg font-bold text-white mt-1 group-hover:text-emerald-300 transition-colors">{card.title}</h3>
+                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">{card.desc}</p>
                 </div>
 
-                {/* Footer Badges & Direct Launch to Dashboard Action */}
-                <div className="pt-4 border-t border-white/10 flex flex-col gap-2">
-                  <div className="flex justify-between items-center font-mono text-[10px]">
-                    <span className="text-gray-500 truncate max-w-[140px]">{feat.sdgs[0]}</span>
-                    <span className="text-emerald-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                      Inspect Demo <ChevronRight className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      audioEngine.playSuccessChime();
-                      onLaunchApp(feat.targetDashboardView);
-                    }}
-                    className="w-full py-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-mono text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer mt-1"
-                  >
-                    <span>Open in Dashboard</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
+                <div className="pt-6 mt-6 border-t border-slate-800/80 flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-300">{card.metrics}</span>
+                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
                 </div>
               </motion.div>
             );
@@ -603,722 +316,609 @@ export const EcoVerzzWebsite: React.FC<EcoVerzzWebsiteProps> = ({ onLaunchApp, p
         </div>
       </section>
 
-      {/* 5. INTERACTIVE LIVE FEATURE DEMO SECTION (Real-Time Experience for ALL 16 Features) */}
-      <section id="demo" className="py-16 px-4 md:px-8 max-w-[1440px] mx-auto text-left">
-        <div className="bg-gradient-to-b from-[#0a1222] to-[#070c17] border border-emerald-500/30 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden backdrop-blur-2xl">
-          
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 pb-6 border-b border-white/10">
-            <div>
-              <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest block mb-1">
-                REAL-TIME HANDS-ON EXPERIENCE FOR ALL 16 FEATURES
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
-                Live Module Simulator: {activeDemoFeature?.name || "EcoScan"}
-              </h2>
-            </div>
-
-            {/* Feature selector dropdown */}
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <button
-                onClick={() => {
-                  audioEngine.playSuccessChime();
-                  if (activeDemoFeature) onLaunchApp(activeDemoFeature.targetDashboardView);
-                }}
-                className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-400 text-gray-950 font-black text-xs uppercase tracking-wider rounded-2xl flex items-center gap-2 shadow-lg hover:from-emerald-400 hover:to-teal-300 cursor-pointer"
-              >
-                <span>Open in Dashboard</span> <ExternalLink className="w-3.5 h-3.5" />
-              </button>
-
-              <select
-                value={activeDemoFeature?.id}
-                onChange={(e) => {
-                  const found = CORE_FEATURES.find(f => f.id === e.target.value);
-                  if (found) {
-                    audioEngine.playTick();
-                    setActiveDemoFeature(found);
-                  }
-                }}
-                className="bg-black/70 border border-emerald-500/40 text-emerald-300 text-xs rounded-2xl px-4 py-2.5 font-mono outline-none focus:border-emerald-400 cursor-pointer"
-              >
-                {CORE_FEATURES.map(f => (
-                  <option key={f.id} value={f.id} className="bg-gray-900 text-white">
-                    #{f.num}. {f.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+      {/* SECTION 4: HOW ECOVERZZ WORKS TIMELINE */}
+      <section id="how-it-works" className="py-24 border-t border-slate-800/80 bg-slate-950/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest text-teal-400">Automated Pipeline</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">How EcoVerzz AI Works</h2>
+            <p className="text-sm text-slate-400 mt-3">From image capture to verified municipal offset credits in 7 seamless steps.</p>
           </div>
 
-          {/* Interactive Feature Demo Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Left Column: Technical Description & SDGS */}
-            <div className="lg:col-span-5 space-y-6 text-left">
-              <div>
-                <span className="text-xs font-mono text-emerald-400 block font-bold mb-1">TAGLINE</span>
-                <p className="text-lg font-black text-white italic">"{activeDemoFeature?.tagline}"</p>
-              </div>
-
-              <div>
-                <span className="text-xs font-mono text-gray-400 block font-bold mb-1 uppercase">Full Module Description</span>
-                <p className="text-xs text-gray-300 font-light leading-relaxed">
-                  {activeDemoFeature?.fullDesc}
-                </p>
-              </div>
-
-              <div>
-                <span className="text-xs font-mono text-gray-400 block font-bold mb-2 uppercase">Key Capability Highlights</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-xs">
-                  {activeDemoFeature?.keyHighlights.map((hl, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 text-gray-200 flex items-center gap-2">
-                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span className="text-[11px]">{hl}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <span className="text-xs font-mono text-gray-400 block font-bold mb-2 uppercase">UN Sustainable Development Goals (SDGs)</span>
-                <div className="flex flex-wrap gap-2">
-                  {activeDemoFeature?.sdgs.map((sdg, idx) => (
-                    <span key={idx} className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[10px] font-bold">
-                      🌱 {sdg}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Direct Link to Dashboard Details */}
-              <div className="pt-2">
-                <button
+          {/* Interactive Timeline Navigation */}
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-4 relative">
+            {TIMELINE_STEPS.map((t) => {
+              const Icon = t.icon;
+              const isSelected = selectedTimelineStep === t.step;
+              return (
+                <div
+                  key={t.step}
                   onClick={() => {
-                    audioEngine.playSuccessChime();
-                    if (activeDemoFeature) onLaunchApp(activeDemoFeature.targetDashboardView);
+                    setSelectedTimelineStep(t.step);
+                    audioEngine.playTick();
                   }}
-                  className="w-full py-3 bg-white/5 hover:bg-white/10 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  className={`p-4 rounded-2xl border text-center transition-all cursor-pointer ${
+                    isSelected 
+                      ? "bg-emerald-500/10 border-emerald-500/50 text-white shadow-xl shadow-emerald-500/10" 
+                      : "bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200"
+                  }`}
                 >
-                  <Compass className="w-4 h-4 text-emerald-400" />
-                  <span>Navigate to {activeDemoFeature?.name} in Dashboard</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Right Column: Real-Time Interactive Simulator Console */}
-            <div className="lg:col-span-7 bg-black/60 border border-white/10 rounded-2xl p-6 text-left">
-              
-              {/* 1. ECOSCAN AI SIMULATOR */}
-              {activeDemoFeature?.id === "ecoscan" && (
-                <div className="space-y-5">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white font-mono flex items-center gap-2">
-                      <Camera className="w-4 h-4 text-emerald-400" /> AI Vision Waste Classifier Demo
-                    </h4>
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                      YOLOv8 Active Model
-                    </span>
+                  <div className={`w-8 h-8 rounded-full mx-auto mb-3 flex items-center justify-center font-mono font-bold text-xs ${isSelected ? "bg-emerald-400 text-slate-950" : "bg-slate-800 text-slate-400"}`}>
+                    {t.step}
                   </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { type: "bottle", label: "Plastic Bottle 🍾" },
-                      { type: "ewaste", label: "Lithium Battery 🔋" },
-                      { type: "organic", label: "Fruit Peels 🍎" },
-                      { type: "cardboard", label: "Cardboard Box 📦" }
-                    ].map(item => (
-                      <button
-                        key={item.type}
-                        onClick={() => handleRunScanDemo(item.type as any)}
-                        className={`p-2.5 rounded-xl border text-xs font-mono font-medium transition-all cursor-pointer ${
-                          scanSample === item.type
-                            ? "bg-emerald-500 text-gray-950 border-emerald-400 font-bold"
-                            : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-[#090f1d] border border-emerald-500/30 font-mono text-xs space-y-3">
-                    {isScanning ? (
-                      <div className="py-8 text-center space-y-3">
-                        <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mx-auto" />
-                        <p className="text-xs text-gray-400">Analyzing waste image tensor matrix...</p>
-                      </div>
-                    ) : scanResult ? (
-                      <>
-                        <div className="flex justify-between items-start border-b border-white/10 pb-3">
-                          <div>
-                            <span className="text-[10px] text-gray-400 block uppercase">Detected Item</span>
-                            <h5 className="text-sm font-bold text-white">{scanResult.title}</h5>
-                          </div>
-                          <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-                            Confidence: {scanResult.confidence}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                          <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
-                            <span className="text-[9px] text-gray-400 uppercase block">Recommended Disposal</span>
-                            <span className="text-emerald-300 font-bold block mt-0.5">{scanResult.binColor}</span>
-                          </div>
-                          <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
-                            <span className="text-[9px] text-gray-400 uppercase block">Reward & Offset</span>
-                            <span className="text-teal-300 font-bold block mt-0.5">{scanResult.ecoPoints} • {scanResult.co2Saved}</span>
-                          </div>
-                        </div>
-
-                        <p className="text-[11px] text-gray-400 font-sans italic border-t border-white/5 pt-2">
-                          💡 Note: {scanResult.instructions}
-                        </p>
-                      </>
-                    ) : null}
-                  </div>
+                  <Icon className={`w-5 h-5 mx-auto mb-2 ${isSelected ? "text-emerald-400" : "text-slate-500"}`} />
+                  <div className="text-xs font-bold line-clamp-1">{t.title}</div>
                 </div>
-              )}
-
-              {/* 2. ECOPULSE SIMULATOR */}
-              {activeDemoFeature?.id === "ecopulse" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-cyan-400" /> Government Schemes & Sustainability Intelligence
-                    </h4>
-                    <span className="text-[10px] text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
-                      Live Feed
-                    </span>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {[
-                      { title: "National Rooftop Solar Subsidy 2026", desc: "Up to 40% subsidy for residential solar installations.", tag: "Govt Scheme" },
-                      { title: "Urban Wet Waste Micro-Composting Policy", desc: "Mandatory segregated collection for apartment complexes.", tag: "Policy" },
-                      { title: "Single-Use Plastic Ban Enforcement", desc: "Stricter penalties for non-biodegradable packaging.", tag: "Law" }
-                    ].map((item, idx) => (
-                      <div key={idx} className="p-3 rounded-2xl bg-[#090f1d] border border-white/10 hover:border-cyan-500/30 transition-all">
-                        <div className="flex justify-between items-start">
-                          <h5 className="font-bold text-white text-xs font-sans">{item.title}</h5>
-                          <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-300 text-[9px] font-bold rounded-md">{item.tag}</span>
-                        </div>
-                        <p className="text-[11px] text-gray-400 font-sans mt-1">{item.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 3. ECO MISSIONS SIMULATOR */}
-              {activeDemoFeature?.id === "ecomissions" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Target className="w-4 h-4 text-amber-400" /> Active Daily & Weekly Challenges
-                    </h4>
-                    <span className="text-[10px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                      Gamified Tasks
-                    </span>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {[
-                      { id: "m1", title: "Scan 3 Recyclable Items Today", reward: "+50 EcoPoints", progress: "2/3 completed" },
-                      { id: "m2", title: "Rescue 1 Surplus Meal or Donate Food", reward: "+100 EcoPoints", progress: "0/1 completed" },
-                      { id: "m3", title: "Participate in Local Plastic Sweep", reward: "+150 EcoPoints", progress: "1/1 ready" }
-                    ].map((m) => {
-                      const isDone = completedMissions.includes(m.id);
-                      return (
-                        <div key={m.id} className="p-3 rounded-2xl bg-[#090f1d] border border-white/10 flex items-center justify-between">
-                          <div>
-                            <h5 className="font-bold text-white font-sans text-xs">{m.title}</h5>
-                            <span className="text-[10px] text-amber-400 block font-bold mt-0.5">{m.reward} • {m.progress}</span>
-                          </div>
-                          <button
-                            onClick={() => {
-                              audioEngine.playSuccessChime();
-                              if (!isDone) setCompletedMissions(prev => [...prev, m.id]);
-                            }}
-                            className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all cursor-pointer ${
-                              isDone ? "bg-emerald-500 text-gray-950" : "bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30"
-                            }`}
-                          >
-                            {isDone ? "Claimed ✓" : "Complete Mission"}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* 4. ENVIRONMENTAL IMPACT DASHBOARD SIMULATOR */}
-              {activeDemoFeature?.id === "impact_dashboard" && (
-                <div className="space-y-5 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <BarChart2 className="w-4 h-4 text-emerald-400" /> Interactive Environmental Offset Matrix
-                    </h4>
-                    <span className="text-[10px] text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                      Live Calculator
-                    </span>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs mb-2">
-                      <span className="text-gray-400">Select Waste Diverted from Landfill:</span>
-                      <span className="text-emerald-400 font-bold">{wasteAmountKg} kg Waste</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={10}
-                      max={500}
-                      step={5}
-                      value={wasteAmountKg}
-                      onChange={(e) => { audioEngine.playTick(); setWasteAmountKg(Number(e.target.value)); }}
-                      className="w-full accent-emerald-500 cursor-pointer"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
-                      <span className="text-[9px] text-gray-400 block uppercase">CO2 Diverted</span>
-                      <span className="text-base font-black text-emerald-400">{(wasteAmountKg * 2.8).toFixed(1)} kg</span>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-teal-500/10 border border-teal-500/30">
-                      <span className="text-[9px] text-gray-400 block uppercase">Trees Saved</span>
-                      <span className="text-base font-black text-teal-300">{(wasteAmountKg * 0.12).toFixed(1)} trees</span>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/30">
-                      <span className="text-[9px] text-gray-400 block uppercase">Water Conserved</span>
-                      <span className="text-base font-black text-cyan-300">{(wasteAmountKg * 14.5).toFixed(0)} L</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 5. CIRCULAR MARKETPLACE SIMULATOR */}
-              {activeDemoFeature?.id === "circular_marketplace" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <ShoppingBag className="w-4 h-4 text-purple-400" /> Circular Marketplace Live Listings
-                    </h4>
-                    <span className="text-[10px] text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">
-                      Zero-Waste Trade
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      { title: "Upcycled Denim Tote Bag", points: "120 EcoPoints", seller: "Elena G.", icon: "🎒" },
-                      { title: "Refurbished Solar Powerbank", points: "350 EcoPoints", seller: "Dave K.", icon: "🔋" },
-                      { title: "Organic Vermicompost Kit 5kg", points: "90 EcoPoints", seller: "GreenRoots NGO", icon: "🌱" },
-                      { title: "Stainless Steel Water Flask", points: "80 EcoPoints", seller: "Sarah M.", icon: "🥤" }
-                    ].map((item, idx) => (
-                      <div key={idx} className="p-3 rounded-2xl bg-[#0a0f1e] border border-white/10 space-y-2">
-                        <div className="flex justify-between items-start">
-                          <span className="text-2xl">{item.icon}</span>
-                          <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 text-[10px] font-bold">
-                            {item.points}
-                          </span>
-                        </div>
-                        <h5 className="font-bold text-white text-xs font-sans">{item.title}</h5>
-                        <div className="flex justify-between items-center text-[10px] text-gray-400 pt-1 border-t border-white/5">
-                          <span>Listed by {item.seller}</span>
-                          <button onClick={() => audioEngine.playSuccessChime()} className="text-emerald-400 font-bold hover:underline cursor-pointer">Acquire</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 6. FOOD RESCUE NETWORK SIMULATOR */}
-              {activeDemoFeature?.id === "food_rescue" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Heart className="w-4 h-4 text-rose-400" /> Active Surplus Food Rescues
-                    </h4>
-                    <span className="text-[10px] text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
-                      Live NGO Dispatch
-                    </span>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {[
-                      { donor: "Bistro Green Hotel", item: "15 Vegan Meals Box", expiry: "Expiry: 2h remaining", dist: "0.8 km nearby" },
-                      { donor: "Fresh Supermarket", item: "20kg Organic Bakery Bread", expiry: "Expiry: 4h remaining", dist: "1.4 km nearby" }
-                    ].map((food, idx) => (
-                      <div key={idx} className="p-3 rounded-2xl bg-[#0a0f1e] border border-rose-500/20 flex items-center justify-between">
-                        <div>
-                          <h5 className="font-bold text-white font-sans text-xs">{food.item}</h5>
-                          <span className="text-[10px] text-gray-400 block">{food.donor} • {food.dist}</span>
-                          <span className="text-[9px] text-rose-400 block font-bold">{food.expiry}</span>
-                        </div>
-                        <button onClick={() => audioEngine.playSuccessChime()} className="px-3 py-1.5 bg-rose-500/20 border border-rose-500/40 text-rose-300 rounded-xl text-[10px] font-bold hover:bg-rose-500/30 cursor-pointer">
-                          Dispatch Rescue
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 7. COMMUNITY CLEANUP SIMULATOR */}
-              {activeDemoFeature?.id === "community_cleanup" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Users className="w-4 h-4 text-teal-400" /> Upcoming Local Cleanup Drives
-                    </h4>
-                    <span className="text-[10px] text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-md border border-teal-500/20">
-                      Community Drives
-                    </span>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {[
-                      { title: "North Creek Plastic Sweep", coords: "12.97° N, 77.59° E", volunteers: "28 joined", date: "Saturday, 9:00 AM" },
-                      { title: "Urban Park Sapling Plantation", coords: "12.92° N, 77.62° E", volunteers: "45 joined", date: "Sunday, 7:30 AM" }
-                    ].map((event, idx) => (
-                      <div key={idx} className="p-3 rounded-2xl bg-[#0a0f1e] border border-teal-500/20 flex items-center justify-between">
-                        <div>
-                          <h5 className="font-bold text-white font-sans text-xs">{event.title}</h5>
-                          <span className="text-[10px] text-gray-400 block">{event.coords} • {event.date}</span>
-                          <span className="text-[9px] text-teal-400 block font-bold">{event.volunteers}</span>
-                        </div>
-                        <button onClick={() => audioEngine.playSuccessChime()} className="px-3.5 py-1.5 bg-teal-500/20 border border-teal-500/40 text-teal-300 rounded-xl text-[10px] font-bold hover:bg-teal-500/30 cursor-pointer">
-                          RSVP & Join
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 8. BUSINESS & CSR PORTAL SIMULATOR */}
-              {activeDemoFeature?.id === "business_csr" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-blue-400" /> Enterprise ESG Impact Calculator
-                    </h4>
-                    <span className="text-[10px] text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
-                      CSR Metric Engine
-                    </span>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400">Company Employee Workforce:</span>
-                      <span className="text-blue-400 font-bold">{employeeCount} Employees</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={50}
-                      max={2000}
-                      step={25}
-                      value={employeeCount}
-                      onChange={(e) => { audioEngine.playTick(); setEmployeeCount(Number(e.target.value)); }}
-                      className="w-full accent-blue-500 cursor-pointer"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 text-center">
-                    <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/30">
-                      <span className="text-[9px] text-gray-400 block uppercase">Est. Annual CO2 Reduced</span>
-                      <span className="text-sm font-black text-blue-300">{(employeeCount * 140).toLocaleString()} kg</span>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30">
-                      <span className="text-[9px] text-gray-400 block uppercase">Scope 3 ESG Score</span>
-                      <span className="text-sm font-black text-indigo-300">AAA Verified</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 9. RECYCLE CONNECT SIMULATOR */}
-              {activeDemoFeature?.id === "recycle_connect" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <RefreshCw className="w-4 h-4 text-amber-400" /> Live Scrap Commodity Rates & Pickup
-                    </h4>
-                    <span className="text-[10px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                      Monetize Scrap
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    {[
-                      { item: "PET Plastics", rate: "$0.40 / kg" },
-                      { item: "Copper Wire", rate: "$6.50 / kg" },
-                      { item: "E-Waste / PCB", rate: "$2.80 / kg" },
-                      { item: "Cardboard", rate: "$0.15 / kg" }
-                    ].map((row, i) => (
-                      <div key={i} className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 flex justify-between">
-                        <span className="text-gray-300">{row.item}</span>
-                        <span className="text-amber-400 font-bold">{row.rate}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button onClick={() => audioEngine.playSuccessChime()} className="w-full py-2.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold rounded-xl text-xs uppercase hover:bg-amber-500/30 cursor-pointer">
-                    Schedule Doorstep Scrap Pickup
-                  </button>
-                </div>
-              )}
-
-              {/* 10. USER PROFILE SIMULATOR */}
-              {activeDemoFeature?.id === "user_profile" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <User className="w-4 h-4 text-violet-400" /> Verified Green Identity Preview
-                    </h4>
-                    <span className="text-[10px] text-violet-300 bg-violet-500/10 px-2 py-0.5 rounded-md border border-violet-500/20">
-                      Digital Passport
-                    </span>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-[#090e1a] border border-violet-500/30 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-violet-500 to-purple-400 text-gray-950 font-black text-lg flex items-center justify-center">
-                      {profile?.username ? profile.username.substring(0, 2).toUpperCase() : "EV"}
-                    </div>
-                    <div>
-                      <h5 className="font-bold text-white text-sm font-sans">{profile?.username || "Citizen Guardian"}</h5>
-                      <span className="text-[10px] text-violet-300 block font-mono">Rank: Planetary Pioneer</span>
-                      <span className="text-[9px] text-gray-400 block font-mono mt-0.5">Verified CO2 Offset: 2,840 kg</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 11. SMART NOTIFICATIONS SIMULATOR */}
-              {activeDemoFeature?.id === "smart_notifications" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Bell className="w-4 h-4 text-emerald-400" /> Real-time Notification Engine
-                    </h4>
-                    <span className="text-[10px] text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                      Geo-Fenced Alerts
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
-                      🔔 Recycler Pickup Partner is 5 minutes away from your coordinates!
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 text-gray-300">
-                      🍱 Food Rescue Alert: Bistro Green posted 15 surplus meals nearby.
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 12. LOCATION SERVICES SIMULATOR */}
-              {activeDemoFeature?.id === "location_services" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-blue-400" /> GIS Spatial Map & Drop-Off Finder
-                    </h4>
-                    <span className="text-[10px] text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
-                      GPS Enabled
-                    </span>
-                  </div>
-
-                  <div className="p-3 rounded-2xl bg-[#090f1d] border border-white/10 space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-bold text-white">Central E-Waste Recycling Kiosk</span>
-                      <span className="text-emerald-400 font-bold">0.4 km away</span>
-                    </div>
-                    <span className="text-[10px] text-gray-400 block font-sans">Open now • Accepts Lithium batteries, circuit boards, small appliances</span>
-                  </div>
-                </div>
-              )}
-
-              {/* 13. REWARDS & RECOGNITION SIMULATOR */}
-              {activeDemoFeature?.id === "rewards_recognition" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Award className="w-4 h-4 text-amber-400" /> Rewards & Badge Shelf
-                    </h4>
-                    <span className="text-[10px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                      Perks Engine
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300">
-                      🥇 Gold Seedling Badge
-                    </div>
-                    <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
-                      🌳 10 Trees Certificate
-                    </div>
-                    <div className="p-3 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300">
-                      🚌 Metro Pass 20% Off
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 14. AI INSIGHTS SIMULATOR */}
-              {activeDemoFeature?.id === "ai_insights" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Cpu className="w-4 h-4 text-indigo-400" /> Personal AI Eco-Advisor
-                    </h4>
-                    <span className="text-[10px] text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">
-                      LLM Advisor
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={aiHabitQuery}
-                      onChange={(e) => setAiHabitQuery(e.target.value)}
-                      className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
-                    />
-                    <button
-                      onClick={handleGenerateAiAdvice}
-                      className="w-full py-2 bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-bold rounded-xl text-xs uppercase hover:bg-indigo-500/30 cursor-pointer"
-                    >
-                      Generate AI Sustainability Plan
-                    </button>
-                  </div>
-
-                  {aiAdviceReply && (
-                    <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-gray-200 text-xs font-sans whitespace-pre-line">
-                      {aiAdviceReply}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* 15. ECOLINK SOCIAL SIMULATOR */}
-              {activeDemoFeature?.id === "ecolink_social" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-teal-400" /> EcoLink Community Story Feed
-                    </h4>
-                    <span className="text-[10px] text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-md border border-teal-500/20">
-                      Social Network
-                    </span>
-                  </div>
-
-                  <div className="p-3 rounded-2xl bg-[#090f1d] border border-white/10 space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-bold text-white">Elena G. • 2h ago</span>
-                      <span className="text-emerald-400 font-bold">♥ 42 Upvotes</span>
-                    </div>
-                    <p className="text-xs text-gray-300 font-sans">"We cleared 12kg of microplastics from the local creek bed today!"</p>
-                  </div>
-                </div>
-              )}
-
-              {/* 16. ECOREPORT SIMULATOR */}
-              {activeDemoFeature?.id === "ecoreport" && (
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-rose-400" /> Civic Environmental Issue Reporter
-                    </h4>
-                    <span className="text-[10px] text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
-                      Authority Ticket
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <select
-                      value={reportType}
-                      onChange={(e) => setReportType(e.target.value)}
-                      className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none"
-                    >
-                      <option value="Illegal Dumping">Illegal Trash Dumping 🚯</option>
-                      <option value="Water Leakage">Clean Water Pipe Burst 💧</option>
-                      <option value="Tree Cutting">Unauthorized Tree Felling 🌳</option>
-                    </select>
-
-                    <button
-                      onClick={() => {
-                        audioEngine.playSuccessChime();
-                        setReportSubmitted(true);
-                      }}
-                      className="w-full py-2.5 bg-rose-500/20 border border-rose-500/40 text-rose-300 font-bold rounded-xl text-xs uppercase hover:bg-rose-500/30 cursor-pointer"
-                    >
-                      Submit Verified GPS Environmental Ticket
-                    </button>
-                  </div>
-
-                  {reportSubmitted && (
-                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
-                      ✅ Ticket #EV-REP-902 dispatched to Municipal Pollution Authority. GPS: 12.97° N, 77.59° E.
-                    </div>
-                  )}
-                </div>
-              )}
-
-            </div>
-
+              );
+            })}
           </div>
+
+          {/* Timeline Step Active Detail Box */}
+          <div className="mt-8 p-8 rounded-3xl border border-emerald-500/30 bg-slate-900/90 max-w-3xl mx-auto text-center relative overflow-hidden">
+            <div className="text-xs font-mono text-emerald-400 font-bold uppercase">Step {selectedTimelineStep} of 7</div>
+            <h3 className="text-2xl font-black text-white mt-2">{TIMELINE_STEPS[selectedTimelineStep - 1].title}</h3>
+            <p className="text-sm text-slate-300 mt-3 max-w-xl mx-auto leading-relaxed">
+              {TIMELINE_STEPS[selectedTimelineStep - 1].desc}
+            </p>
+            <div className="mt-6 flex justify-center gap-3">
+              <button 
+                disabled={selectedTimelineStep === 1}
+                onClick={() => setSelectedTimelineStep(prev => Math.max(1, prev - 1))}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-xs font-bold text-slate-300 disabled:opacity-30 cursor-pointer"
+              >
+                Previous Step
+              </button>
+              <button 
+                disabled={selectedTimelineStep === 7}
+                onClick={() => setSelectedTimelineStep(prev => Math.min(7, prev + 1))}
+                className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold disabled:opacity-30 cursor-pointer"
+              >
+                Next Step →
+              </button>
+            </div>
+          </div>
+
         </div>
       </section>
 
-      {/* 6. SDG IMPACT MATRIX */}
-      <section id="impact" className="py-16 px-4 md:px-8 max-w-[1440px] mx-auto text-left">
-        <div className="mb-10">
-          <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest block mb-2">
-            GLOBAL SUSTAINABILITY GOALS
-          </span>
-          <h2 className="text-3xl font-black text-white">Direct UN SDG Alignment</h2>
-          <p className="text-xs text-gray-400 mt-1 max-w-xl font-light">
-            EcoVerzz AI directly measures and reports environmental actions mapped to official United Nations Sustainable Development Goals.
-          </p>
+      {/* SECTION 5: AI TECHNOLOGY ARCHITECTURE DIAGRAM */}
+      <section id="ai-tech" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">Deep Learning Infrastructure</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">AI Technology Stack</h2>
+          <p className="text-sm text-slate-400 mt-3">Engineered with high-throughput neural models and fraud detection safeguards.</p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 font-mono text-xs">
-          {[
-            { num: "SDG 2", title: "Zero Hunger", desc: "Food Surplus Rescue Network", color: "bg-amber-500/15 border-amber-500/30 text-amber-400" },
-            { num: "SDG 11", title: "Sustainable Cities", desc: "Community Cleanup & EcoReport", color: "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" },
-            { num: "SDG 12", title: "Responsible Consumption", desc: "EcoScan AI & Circular Market", color: "bg-cyan-500/15 border-cyan-500/30 text-cyan-400" },
-            { num: "SDG 13", title: "Climate Action", desc: "CO2 Diversion Ledger Analytics", color: "bg-teal-500/15 border-teal-500/30 text-teal-400" },
-            { num: "SDG 14", title: "Life Below Water", desc: "Coast & Creek Plastic Sweeps", color: "bg-blue-500/15 border-blue-500/30 text-blue-400" },
-            { num: "SDG 17", title: "Partnerships", desc: "Business & CSR EcoLink Hub", color: "bg-purple-500/15 border-purple-500/30 text-purple-400" }
-          ].map((sdg, idx) => (
-            <div key={idx} className={`p-4 rounded-2xl border ${sdg.color} text-left space-y-2`}>
-              <span className="font-black text-sm block">{sdg.num}</span>
-              <h5 className="font-bold text-white font-sans text-xs">{sdg.title}</h5>
-              <p className="text-[10px] text-gray-400 font-light leading-snug">{sdg.desc}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {AI_TECH_NODES.map((node) => (
+            <div key={node.id} className="p-6 rounded-3xl border border-slate-800 bg-slate-900/60 hover:border-cyan-500/40 transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 font-mono text-[10px] font-bold">Model Node</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">{node.name}</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">{node.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 7. FOOTER */}
-      <footer className="py-12 px-4 md:px-8 border-t border-white/10 bg-[#03050c] text-left">
-        <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-6 font-mono text-xs text-gray-500">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500 text-gray-950 font-black flex items-center justify-center text-base">🌱</div>
-            <div>
-              <span className="text-white font-bold block">EcoVerzz AI Ecosystem</span>
-              <span className="text-[10px]">AI-Powered Sustainability for Citizens, Enterprises & Governments</span>
+      {/* SECTION 6: IMPACT DASHBOARD & REALTIME CHARTS */}
+      <section className="py-24 border-t border-slate-800/80 bg-slate-950/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Realtime Biosphere Analytics</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">Global Impact Dashboard</h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="p-6 rounded-3xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <span className="text-xs font-bold text-slate-400">Waste Recycled Breakdown</span>
+                <div className="text-3xl font-extrabold text-white mt-2">1,840.5 <span className="text-xs font-normal text-slate-400">Tons</span></div>
+              </div>
+              <div className="space-y-3 mt-6">
+                <div>
+                  <div className="flex justify-between text-xs text-slate-400 mb-1">
+                    <span>Plastics & Polymers</span>
+                    <span className="text-emerald-400 font-bold">54%</span>
+                  </div>
+                  <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="bg-emerald-400 h-full rounded-full" style={{ width: "54%" }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs text-slate-400 mb-1">
+                    <span>E-Waste & Electronics</span>
+                    <span className="text-cyan-400 font-bold">28%</span>
+                  </div>
+                  <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="bg-cyan-400 h-full rounded-full" style={{ width: "28%" }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs text-slate-400 mb-1">
+                    <span>Glass & Metal Packaging</span>
+                    <span className="text-indigo-400 font-bold">18%</span>
+                  </div>
+                  <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="bg-indigo-400 h-full rounded-full" style={{ width: "18%" }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-3xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <span className="text-xs font-bold text-slate-400">Surplus Food Rescued</span>
+                <div className="text-3xl font-extrabold text-rose-400 mt-2">142,500 <span className="text-xs font-normal text-slate-400">Meals</span></div>
+              </div>
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 mt-6 text-xs text-slate-300 space-y-2">
+                <div className="flex justify-between">
+                  <span>NGO Distribution Network</span>
+                  <span className="font-bold text-rose-400">128 NGOs</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Methane Gas Prevented</span>
+                  <span className="font-bold text-emerald-400">48.2 Tons CH₄</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Active Donor Restaurants</span>
+                  <span className="font-bold text-teal-300">340 Hubs</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-3xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <span className="text-xs font-bold text-slate-400">Verified Trees Planted</span>
+                <div className="text-3xl font-extrabold text-teal-300 mt-2">18,400 <span className="text-xs font-normal text-slate-400">Trees</span></div>
+              </div>
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 space-y-2 mt-6">
+                <div className="font-bold text-sm">Madagascar Reserve Project</div>
+                <div>Every 1,000 EcoPoints redeemed sponsors 1 native sapling planted in verified reforestation zones.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTIONS 7-11: ENTERPRISE PORTALS SHOWCASE */}
+      <section id="portals" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Tailored Enterprise Solutions</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">Role-Based Portals</h2>
+        </div>
+
+        {/* Portal Switcher Tabs */}
+        <div className="flex justify-center gap-2 border-b border-slate-800 pb-4 overflow-x-auto mb-10">
+          {[
+            { id: "gov", label: "Smart City Government", icon: Building2 },
+            { id: "citizen", label: "Citizen & Volunteer", icon: User },
+            { id: "csr", label: "CSR & Corporate ESG", icon: ShieldCheck },
+            { id: "recycler", label: "Recycler Network", icon: RefreshCw },
+            { id: "food", label: "Food Rescue Network", icon: Heart },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activePortalTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActivePortalTab(tab.id as any)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  isActive 
+                    ? "bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20" 
+                    : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <Icon className="w-4 h-4" /> {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Portal Content Preview Box */}
+        <div className="p-8 rounded-3xl border border-slate-800 bg-slate-900/80">
+          {activePortalTab === "gov" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">Government & Municipalities</span>
+                <h3 className="text-2xl font-bold text-white mt-3">Smart City Command & Ward Monitoring</h3>
+                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                  Real-time municipal dashboard for ward segregation tracking, citizen complaint SLA triage, truck route optimization, and automated ESG reporting.
+                </p>
+                <div className="mt-6 space-y-2 text-xs text-slate-300">
+                  <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /> Ward Performance Matrix & Heatmaps</div>
+                  <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /> AI Complaint Auto-Dispatch</div>
+                  <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400" /> Executive PDF & CSV Data Exports</div>
+                </div>
+                <button onClick={() => onLaunchApp("admin")} className="mt-6 px-5 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs cursor-pointer">
+                  Launch Government Dashboard →
+                </button>
+              </div>
+              <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-3">
+                <div className="text-emerald-400 font-bold">LIVE MUNICIPAL TELEMETRY NODE #14</div>
+                <div className="flex justify-between"><span>Ward 12 Segregation Rate</span><span className="text-emerald-400">88%</span></div>
+                <div className="flex justify-between"><span>Open Complaints</span><span className="text-amber-400">3 active</span></div>
+                <div className="flex justify-between"><span>AI Vision Accuracy</span><span className="text-cyan-400">99.4%</span></div>
+              </div>
+            </div>
+          )}
+
+          {activePortalTab === "citizen" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-400 text-xs font-mono font-bold">Citizens & Volunteers</span>
+                <h3 className="text-2xl font-bold text-white mt-3">Gamified Sustainability & Rewards</h3>
+                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                  Scan waste, complete daily eco missions, climb municipal leaderboards, claim badges, and redeem EcoPoints for real-world rewards.
+                </p>
+                <button onClick={() => onLaunchApp("user_profile")} className="mt-6 px-5 py-2.5 rounded-xl bg-teal-400 text-slate-950 font-bold text-xs cursor-pointer">
+                  Launch Citizen Portal →
+                </button>
+              </div>
+              <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-3">
+                <div className="text-teal-400 font-bold">CITIZEN PROFILE #ECO-94821</div>
+                <div className="flex justify-between"><span>EcoPoints Balance</span><span className="text-amber-400">480 Coins</span></div>
+                <div className="flex justify-between"><span>Streak Rating</span><span className="text-emerald-400">14 Days 🔥</span></div>
+              </div>
+            </div>
+          )}
+
+          {activePortalTab === "csr" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-mono font-bold">Corporate CSR & ESG</span>
+                <h3 className="text-2xl font-bold text-white mt-3">Verified Corporate Sustainability</h3>
+                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                  Audit Scope 1-3 carbon emissions, sponsor local environmental drives, engage employees, and generate ISO 14064 compliant ESG reports.
+                </p>
+              </div>
+              <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-3">
+                <div className="text-blue-400 font-bold">ENTERPRISE ESG AUDIT MATRIX</div>
+                <div className="flex justify-between"><span>Scope 3 Avoidance</span><span className="text-emerald-400">1,240 T CO₂</span></div>
+                <div className="flex justify-between"><span>Employees Engaged</span><span className="text-cyan-400">4,850 Active</span></div>
+              </div>
+            </div>
+          )}
+
+          {activePortalTab === "recycler" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold">Recyclers & Scrap Hubs</span>
+                <h3 className="text-2xl font-bold text-white mt-3">Smart Recycler Operations</h3>
+                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                  Route pickup requests, verify material authenticity with YOLO AI, manage inventory, and receive automated payments.
+                </p>
+              </div>
+              <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-3">
+                <div className="text-amber-400 font-bold">RECYCLER DISPATCH HUB</div>
+                <div className="flex justify-between"><span>Active Pickups Today</span><span className="text-emerald-400">28 Queued</span></div>
+                <div className="flex justify-between"><span>Route Optimization</span><span className="text-indigo-400">+28% Efficient</span></div>
+              </div>
+            </div>
+          )}
+
+          {activePortalTab === "food" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono font-bold">Food Rescue Network</span>
+                <h3 className="text-2xl font-bold text-white mt-3">Zero Surplus Food Waste</h3>
+                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                  Connect commercial donors with food banks and NGOs to redistribute surplus meals safely before expiry.
+                </p>
+              </div>
+              <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-3">
+                <div className="text-rose-400 font-bold">FOOD RESCUE LIVE MAP</div>
+                <div className="flex justify-between"><span>Meals Salvaged Today</span><span className="text-emerald-400">1,420 Meals</span></div>
+                <div className="flex justify-between"><span>NGO Express Pickups</span><span className="text-rose-400">12 En Route</span></div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* SECTION 12: INTERACTIVE CARBON CALCULATOR */}
+      <section id="calculator" className="py-24 border-t border-slate-800/80 bg-slate-950/40">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">ISO 14064 Standard</span>
+            <h2 className="text-3xl font-extrabold text-white mt-1">Interactive Carbon Calculator</h2>
+            <p className="text-xs text-slate-400 mt-2">Adjust monthly inputs to calculate your estimated CO₂ footprint and tree offset equivalence.</p>
+          </div>
+
+          <div className="p-8 rounded-3xl border border-emerald-500/30 bg-slate-900/90 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-2">
+                  <span className="text-slate-300">Monthly Electricity Consumption</span>
+                  <span className="text-emerald-400 font-mono">{calcElectricity} kWh</span>
+                </div>
+                <input 
+                  type="range" min="50" max="1000" value={calcElectricity} 
+                  onChange={(e) => setCalcElectricity(Number(e.target.value))}
+                  className="w-full accent-emerald-400 cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-2">
+                  <span className="text-slate-300">Monthly Vehicle Commute</span>
+                  <span className="text-cyan-400 font-mono">{calcCommute} km</span>
+                </div>
+                <input 
+                  type="range" min="0" max="2000" value={calcCommute} 
+                  onChange={(e) => setCalcCommute(Number(e.target.value))}
+                  className="w-full accent-cyan-400 cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-2">
+                  <span className="text-slate-300">Monthly Household Waste</span>
+                  <span className="text-indigo-400 font-mono">{calcWasteKg} kg</span>
+                </div>
+                <input 
+                  type="range" min="10" max="300" value={calcWasteKg} 
+                  onChange={(e) => setCalcWasteKg(Number(e.target.value))}
+                  className="w-full accent-indigo-400 cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col justify-between text-center">
+              <div>
+                <span className="text-xs uppercase tracking-widest font-bold text-slate-400">Estimated Carbon Output</span>
+                <div className="text-4xl font-black text-emerald-400 mt-2">{calculatedCO2} <span className="text-sm font-normal text-slate-400">kg CO₂ / mo</span></div>
+              </div>
+
+              <div className="py-4 my-4 border-y border-slate-800/80">
+                <div className="text-xs text-slate-300">Equivalent Trees Needed to Offset</div>
+                <div className="text-2xl font-bold text-teal-300 mt-1">🌳 {treesToOffset} Trees / Year</div>
+              </div>
+
+              <button onClick={() => onLaunchApp("user_profile")} className="w-full py-3 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold hover:bg-emerald-400 transition-all cursor-pointer">
+                Start Neutralizing Your Footprint →
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 14: TESTIMONIALS */}
+      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Verified Impact Stories</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">Loved by Leaders & Citizens</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { quote: "EcoVerzz transformed our municipal ward segregation rate from 42% to 88% in just 90 days. The AI vision accuracy is unmatched.", name: "Rajesh Malhotra", role: "Smart City Commissioner", org: "Municipal Board" },
+            { quote: "Our CSR team sponsored 500 saplings through EcoVerzz. The auditable ISO 14064 reporting saved us hundreds of audit hours.", name: "Ananya Deshmukh", role: "Head of ESG & CSR", org: "Fortune 500 Enterprise" },
+            { quote: "The Food Rescue Network allowed our restaurant to donate 1,200 surplus meals directly to local food banks without any hassle.", name: "Marcus Chen", role: "Culinary Director", org: "Green Grocer Group" }
+          ].map((item, idx) => (
+            <div key={idx} className="p-6 rounded-3xl border border-slate-800 bg-slate-900/60 flex flex-col justify-between">
+              <p className="text-xs text-slate-300 leading-relaxed italic">"{item.quote}"</p>
+              <div className="mt-6 pt-4 border-t border-slate-800">
+                <div className="font-bold text-white text-xs">{item.name}</div>
+                <div className="text-[10px] text-slate-400">{item.role} • {item.org}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SECTION 15: PRICING */}
+      <section id="pricing" className="py-24 border-t border-slate-800/80 bg-slate-950/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <span className="text-xs font-bold uppercase tracking-widest text-teal-400">Flexible SaaS Plans</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">Transparent Pricing</h2>
+            
+            {/* Billing Cycle Toggle */}
+            <div className="mt-6 inline-flex items-center p-1 rounded-2xl bg-slate-900 border border-slate-800 text-xs">
+              <button 
+                onClick={() => setPricingCycle("monthly")}
+                className={`px-4 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${pricingCycle === "monthly" ? "bg-emerald-500 text-slate-950" : "text-slate-400"}`}
+              >
+                Monthly
+              </button>
+              <button 
+                onClick={() => setPricingCycle("yearly")}
+                className={`px-4 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${pricingCycle === "yearly" ? "bg-emerald-500 text-slate-950" : "text-slate-400"}`}
+              >
+                Yearly (20% Off)
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <button onClick={() => onLaunchApp("home")} className="text-emerald-400 hover:underline font-bold cursor-pointer">Launch Platform</button>
-            <a href="#features" className="hover:text-gray-300">16 Features List</a>
-            <a href="#demo" className="hover:text-gray-300">AI Demos</a>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[
+              { name: "Citizen", price: "Free", desc: "For individuals & volunteers.", features: ["EcoScan AI (50 scans/mo)", "Community Cleanup Drives", "EcoPoints Wallet", "Standard Leaderboard"] },
+              { name: "NGO & Non-Profit", price: pricingCycle === "yearly" ? "$49/mo" : "$59/mo", desc: "For local conservation groups.", features: ["Food Rescue Dispatch Map", "Unlimited Volunteer Missions", "Direct Recycler Pickup Route", "Verified Impact Stamps"] },
+              { name: "Corporate CSR", price: pricingCycle === "yearly" ? "$299/mo" : "$349/mo", desc: "For companies managing ESG goals.", features: ["Scope 1-3 Carbon Accounting", "Employee Eco Challenge Hub", "CSR Grant Manager", "ISO 14064 PDF Exporter"], highlight: true },
+              { name: "Government", price: "Custom", desc: "For Smart Cities & Municipalities.", features: ["Full Smart City Ward Matrix", "Realtime AI Vision Nodes", "Automated Complaint SLA Triage", "Dedicated 24/7 SLA Support"] }
+            ].map((plan, idx) => (
+              <div key={idx} className={`p-6 rounded-3xl border flex flex-col justify-between ${plan.highlight ? "bg-gradient-to-b from-slate-900 to-emerald-950/40 border-emerald-500/50 shadow-xl shadow-emerald-500/10" : "bg-slate-900/60 border-slate-800"}`}>
+                <div>
+                  <div className="text-xs font-bold text-emerald-400 uppercase font-mono">{plan.name}</div>
+                  <div className="text-3xl font-black text-white mt-2">{plan.price}</div>
+                  <p className="text-[11px] text-slate-400 mt-1">{plan.desc}</p>
+
+                  <div className="space-y-2 mt-6 text-xs text-slate-300">
+                    {plan.features.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button onClick={() => onLaunchApp("admin")} className={`w-full py-2.5 rounded-xl text-xs font-bold mt-8 transition-all cursor-pointer ${plan.highlight ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400" : "bg-slate-800 text-white hover:bg-slate-700"}`}>
+                  Get Started →
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 16: FAQ ACCORDION */}
+      <section className="py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Got Questions?</span>
+          <h2 className="text-3xl font-extrabold text-white mt-1">Frequently Asked Questions</h2>
+        </div>
+
+        <div className="space-y-3">
+          {[
+            { id: 1, q: "How accurate is the EcoScan YOLOv8 AI model?", a: "EcoScan uses fine-tuned YOLOv8 deep learning models achieving 99.4% precision across plastics, e-waste, metals, paper, and organic matter." },
+            { id: 2, q: "Is EcoVerzz compliant with international carbon standards?", a: "Yes. All carbon offset metrics are verified according to ISO 14064 greenhouse gas accounting standards." },
+            { id: 3, q: "How can municipal corporations onboard their wards?", a: "Municipal administrators can deploy EcoVerzz node connectors in under 48 hours to start capturing ward telemetry." }
+          ].map((faq) => (
+            <div key={faq.id} className="rounded-2xl border border-slate-800 bg-slate-900/80 overflow-hidden">
+              <button 
+                onClick={() => setActiveFaqId(activeFaqId === faq.id ? null : faq.id)}
+                className="w-full p-4 text-left font-bold text-sm text-white flex items-center justify-between cursor-pointer"
+              >
+                <span>{faq.q}</span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${activeFaqId === faq.id ? "rotate-180 text-emerald-400" : ""}`} />
+              </button>
+              {activeFaqId === faq.id && (
+                <div className="px-4 pb-4 text-xs text-slate-300 leading-relaxed border-t border-slate-800/80 pt-3">
+                  {faq.a}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SECTION 17: ENTERPRISE FOOTER */}
+      <footer className="border-t border-slate-800/80 bg-slate-950 py-16 text-slate-400 text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-5 gap-8 mb-12">
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2 mb-3">
+              <Leaf className="w-5 h-5 text-emerald-400" />
+              <span className="font-extrabold text-base text-white font-sans uppercase">Eco<span className="text-emerald-400">Verzz</span> AI</span>
+            </div>
+            <p className="text-slate-400 max-w-sm leading-relaxed">
+              Empowering cities, citizens, and corporations with AI-driven sustainability intelligence and circular economy logistics.
+            </p>
+          </div>
+
+          <div>
+            <div className="font-bold text-white mb-3">Platform</div>
+            <div className="space-y-2">
+              <div><a href="#overview" className="hover:text-white">EcoScan AI</a></div>
+              <div><a href="#how-it-works" className="hover:text-white">How It Works</a></div>
+              <div><a href="#calculator" className="hover:text-white">Carbon Calculator</a></div>
+              <div><a href="#pricing" className="hover:text-white">Pricing</a></div>
+            </div>
+          </div>
+
+          <div>
+            <div className="font-bold text-white mb-3">Portals</div>
+            <div className="space-y-2">
+              <div><button onClick={() => onLaunchApp("admin")} className="hover:text-white">Government Portal</button></div>
+              <div><button onClick={() => onLaunchApp("user_profile")} className="hover:text-white">Citizen Portal</button></div>
+              <div><button onClick={() => onLaunchApp("settings")} className="hover:text-white">CSR & Enterprise</button></div>
+            </div>
+          </div>
+
+          <div>
+            <div className="font-bold text-white mb-3">Newsletter</div>
+            <p className="text-[11px] text-slate-400 mb-2">Subscribe for sustainability updates.</p>
+            <div className="flex gap-2">
+              <input type="email" placeholder="email@domain.com" className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-xs outline-none text-white w-full" />
+              <button className="px-3 py-1.5 bg-emerald-500 text-slate-950 font-bold rounded-lg cursor-pointer">Join</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-900 pt-6 flex flex-col sm:flex-row justify-between items-center text-[11px]">
+          <div>© 2026 EcoVerzz AI Platform. All rights reserved. WCAG AA Compliant.</div>
+          <div className="flex gap-4 mt-2 sm:mt-0">
+            <span>Privacy Policy</span>
+            <span>Terms of Service</span>
+            <span>Security Ledger</span>
           </div>
         </div>
       </footer>
+
+      {/* FLOATING AI CHATBOT ASSISTANT BUTTON & MODAL */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <AnimatePresence>
+          {isChatOpen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="mb-4 w-80 sm:w-96 rounded-3xl bg-slate-900 border border-emerald-500/40 shadow-2xl overflow-hidden flex flex-col h-[420px]"
+            >
+              {/* Chat Header */}
+              <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-emerald-400" />
+                  <span className="font-bold text-xs text-white">EcoVerzz AI Assistant</span>
+                </div>
+                <button onClick={() => setIsChatOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Chat Body */}
+              <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+                {chatMessages.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`p-3 rounded-2xl max-w-[80%] ${msg.sender === "user" ? "bg-emerald-500 text-slate-950 font-medium" : "bg-slate-800 text-slate-200"}`}>
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Preset Prompts */}
+              <div className="px-3 py-2 bg-slate-950 border-t border-slate-800/80 flex gap-2 overflow-x-auto">
+                {["Where should I recycle batteries?", "Nearest e-waste center?", "Carbon footprint?"].map((preset, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => handleSendChat(undefined, preset)}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 text-[10px] text-slate-300 hover:text-white whitespace-nowrap cursor-pointer"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+
+              {/* Chat Input */}
+              <form onSubmit={handleSendChat} className="p-3 bg-slate-950 border-t border-slate-800 flex gap-2">
+                <input 
+                  type="text"
+                  placeholder="Ask EcoVerzz AI..."
+                  value={chatQuery}
+                  onChange={(e) => setChatQuery(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+                />
+                <button type="submit" className="p-2 rounded-xl bg-emerald-500 text-slate-950 font-bold cursor-pointer">
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button 
+          onClick={() => setIsChatOpen(!isChatOpen)}
+          className="p-4 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 font-bold shadow-xl shadow-emerald-500/30 hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+        >
+          <Cpu className="w-6 h-6 text-slate-950" />
+        </button>
+      </div>
 
     </div>
   );
