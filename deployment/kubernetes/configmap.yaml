@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecoverzz-config
+  namespace: ecoverzz-prod
+  labels:
+    app: ecoverzz
+
+data:
+  DATABASE_URL: "postgresql://eco_user:eco_pass@eco_postgres:5432/eco_db"
+  REDIS_URL: "redis://eco_redis:6379/0"
+  RABBITMQ_URL: "amqp://eco_user:eco_pass@eco_rabbitmq:5672/"
+  MINIO_ENDPOINT: "http://eco_minio:9000"
+  MINIO_ACCESS_KEY: "minioadmin"
+  MINIO_SECRET_KEY: "minioadmin"
+  JWT_SECRET_KEY: "change_this_to_a_strong_secret"
+  LOG_LEVEL: "info"

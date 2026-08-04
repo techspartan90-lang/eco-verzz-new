@@ -7,15 +7,17 @@ import {
   Sparkles, ShieldCheck, ChevronRight, Play, ExternalLink, 
   Search, Filter, Star, Info, MessageSquare, Plus, Upload, Trash2, Send,
   Sliders, ThumbsUp, Map, Clock, CheckCircle2, Shield, Flame, Gift, Compass,
-  HelpCircle, ChevronDown, CheckCircle, FileText, Download, X, Layers, Activity, Leaf
+  HelpCircle, ChevronDown, CheckCircle, FileText, Download, X, Layers, Activity, Leaf, LogOut
 } from "lucide-react";
 import { EarthVisualizer } from "./EarthVisualizer";
 import { audioEngine } from "./AudioEngine";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
 import { UserProfile } from "../types";
 
 interface EcoVerzzWebsiteProps {
-  onLaunchApp: (targetDashboardView?: string) => void;
-  profile: UserProfile | null;
+  onLaunchApp?: (targetDashboardView?: string) => void;
+  profile?: UserProfile | null;
 }
 
 // SECTION 2: TRUSTED BY PARTNERS
@@ -64,6 +66,10 @@ const AI_TECH_NODES = [
 ];
 
 export const EcoVerzzWebsite: React.FC<EcoVerzzWebsiteProps> = ({ onLaunchApp, profile }) => {
+  const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
+  const activeUser = profile || user;
+
   // Navigation & Interactive States
   const [activePortalTab, setActivePortalTab] = useState<"citizen" | "gov" | "csr" | "recycler" | "food">("gov");
   const [selectedTimelineStep, setSelectedTimelineStep] = useState(1);
@@ -143,20 +149,70 @@ export const EcoVerzzWebsite: React.FC<EcoVerzzWebsiteProps> = ({ onLaunchApp, p
             <a href="#pricing" className="hover:text-emerald-400 transition-colors">Pricing</a>
           </nav>
 
-          {/* Action CTAs */}
+          {/* Merged Action CTAs with Live User Credentials */}
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => onLaunchApp("admin")}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800 hover:border-emerald-500/40 transition-all cursor-pointer"
-            >
-              <Shield className="w-3.5 h-3.5 text-emerald-400" /> Admin Portal
-            </button>
-            <button 
-              onClick={() => onLaunchApp("user_profile")}
-              className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-emerald-500/10 flex items-center gap-2"
-            >
-              <Sparkles className="w-4 h-4 text-slate-950" /> Launch Platform
-            </button>
+            {token && activeUser ? (
+              <div className="flex items-center gap-2.5">
+                <div className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                    {activeUser.name ? activeUser.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-semibold text-white leading-tight">
+                      {activeUser.name || activeUser.email}
+                    </p>
+                    <span className="text-[10px] text-emerald-400 font-medium">
+                      {activeUser.role} Account
+                    </span>
+                  </div>
+                </div>
+
+                {activeUser.role === "Admin" && (
+                  <button
+                    onClick={() => navigate("/admin")}
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-all cursor-pointer"
+                  >
+                    <Shield className="w-3.5 h-3.5 text-amber-400" /> Admin
+                  </button>
+                )}
+
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-emerald-500/10 flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-slate-950" /> Go to Dashboard
+                </button>
+
+                <button
+                  onClick={logout}
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => navigate("/register")}
+                  className="hidden sm:inline-flex px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  Register
+                </button>
+                <button
+                  onClick={() => navigate("/login")}
+                  className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-emerald-500/10 flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-slate-950" /> Launch Platform
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>

@@ -1,0 +1,27 @@
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends gcc build-essential && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies for Celery worker
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code (only needed modules for worker)
+COPY backend/app ./app
+
+# Runtime stage
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Copy dependencies from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /app ./app
+
+ENV PYTHONUNBUFFERED=1
+
+# Celery entrypoint
+CMD ["celery", "-A", "app.services.ai_service", "worker", "--loglevel=info", "-Q", "ai_queue", "-c", "4"]

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecoverzz-worker
+  namespace: ecoverzz-prod
+  labels:
+    app: ecoverzz
+    tier: worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecoverzz
+      tier: worker
+  template:
+    metadata:
+      labels:
+        app: ecoverzz
+        tier: worker
+    spec:
+      containers:
+        - name: worker
+          image: eco_worker:latest
+          command: ["celery", "-A", "app.main.celery", "worker", "--loglevel=info"]
+          ports: []
+          envFrom:
+            - configMapRef:
+                name: ecoverzz-config
+            - secretRef:
+                name: ecoverzz-secret
+          resources:
+            limits:
+              cpu: "400m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+      imagePullSecrets: []

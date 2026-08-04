@@ -1,19 +1,17 @@
 import axios from "axios";
+import { User, UserProfile, LoginCredentials, RegisterPayload } from "../types/auth";
 import { supabase } from "./supabaseClient";
 
-export interface ApiError {
-  detail?: string;
-  [key: string]: any;
-}
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 const apiClient = axios.create({
-  baseURL: "",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor to automatically add authorization headers
+// Request interceptor: attach Authorization: Bearer <token>
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("ecoverzz_access_token");
@@ -25,123 +23,92 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle token refresh automatically on 401 Unauthorized
-let isRefreshing = false;
-let failedQueue: any[] = [];
-
-const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
+// Helper function to extract human-readable FastAPI error message
+const extractErrorMessage = (error: any): string => {
+  if (!error) return "An unexpected error occurred.";
+  if (typeof error === "string") return error;
+  
+  if (error.response?.data) {
+    const data = error.response.data;
+    if (typeof data.detail === "string") return data.detail;
+    if (Array.isArray(data.detail)) {
+      return data.detail
+        .map((err: any) => `${err.loc ? err.loc.join(" -> ") : "Error"}: ${err.msg}`)
+        .join("; ");
     }
-  });
-  failedQueue = [];
+    if (data.message) return data.message;
+  }
+  
+  if (error.message) return error.message;
+  return "Network error or server unreachable. Please check backend connection.";
 };
 
+// Response interceptor: handle 401 Unauthorized token expirations
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return apiClient(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      const refresh = localStorage.getItem("ecoverzz_refresh_token");
-      if (refresh) {
-        try {
-          const res = await axios.post("/api/auth/token/refresh/", { refresh });
-          if (res.status === 200) {
-            const data = res.data;
-            localStorage.setItem("ecoverzz_access_token", data.access);
-            if (data.refresh) {
-              localStorage.setItem("ecoverzz_refresh_token", data.refresh);
-            }
-            apiClient.defaults.headers.common["Authorization"] = `Bearer ${data.access}`;
-            processQueue(null, data.access);
-            originalRequest.headers.Authorization = `Bearer ${data.access}`;
-            return apiClient(originalRequest);
-          }
-        } catch (refreshError) {
-          processQueue(refreshError, null);
-          api.logout();
-          return Promise.reject(refreshError);
-        } finally {
-          isRefreshing = false;
-        }
-      } else {
-        api.logout();
-      }
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("ecoverzz_access_token");
+      localStorage.removeItem("ecoverzz_profile");
     }
-
-    const errorData = error.response ? error.response.data : { detail: "Network error or server unreachable." };
-    return Promise.reject(errorData);
+    const formattedError = new Error(extractErrorMessage(error));
+    (formattedError as any).response = error.response;
+    return Promise.reject(formattedError);
   }
 );
 
 class ApiService {
-  // Token Management
-  public async refreshToken(): Promise<boolean> {
-    const refresh = localStorage.getItem("ecoverzz_refresh_token");
-    if (!refresh) return false;
-
-    try {
-      const response = await axios.post("/api/auth/token/refresh/", { refresh });
-      if (response.status === 200) {
-        const data = response.data;
-        localStorage.setItem("ecoverzz_access_token", data.access);
-        if (data.refresh) {
-          localStorage.setItem("ecoverzz_refresh_token", data.refresh);
-        }
-        return true;
-      }
-    } catch (e) {
-      console.error("Token refresh failed", e);
+  // Authentication flows connected to FastAPI Backend
+  public async login(emailOrCredentials: string | LoginCredentials, password?: string): Promise<User> {
+    let payload: LoginCredentials;
+    if (typeof emailOrCredentials === "string") {
+      payload = { email: emailOrCredentials, password: password || "" };
+    } else {
+      payload = emailOrCredentials;
     }
 
-    this.logout();
-    return false;
-  }
-
-  // Authentication flows
-  public async login(username: string, password: string): Promise<any> {
-    const response = await apiClient.post("/api/auth/login/", { username, password });
+    const response = await apiClient.post("/auth/login", payload);
     const data = response.data;
-    localStorage.setItem("ecoverzz_access_token", data.access);
-    localStorage.setItem("ecoverzz_refresh_token", data.refresh);
+    if (data.access_token) {
+      localStorage.setItem("ecoverzz_access_token", data.access_token);
+    }
     return this.getProfile();
   }
 
-  public async register(payload: any): Promise<any> {
-    await apiClient.post("/api/auth/register/", payload);
-    // Auto login after registration
-    return this.login(payload.username, payload.password);
+  public async register(payload: RegisterPayload): Promise<User> {
+    const { full_name, email, password, phone, role } = payload as any;
+    const body: RegisterPayload = {
+      full_name,
+      email,
+      password,
+      phone: phone || undefined,
+      role: role || "Investor",
+    };
+
+    const response = await apiClient.post("/auth/register", body);
+    const data = response.data;
+    if (data.access_token) {
+      localStorage.setItem("ecoverzz_access_token", data.access_token);
+    }
+    return this.getProfile();
   }
 
-  public async getProfile(): Promise<any> {
+  public async getProfile(): Promise<User> {
     try {
-      const response = await apiClient.get("/api/auth/profile/");
+      const response = await apiClient.get("/user/profile");
       const data = response.data;
-      const profile = {
-        username: data.username,
+      const profile: User = {
+        id: data.id,
+        name: data.name || data.full_name || data.email.split("@")[0],
+        full_name: data.name || data.full_name,
+        username: data.name || data.email.split("@")[0],
         email: data.email,
-        ecoPoints: data.reward_points || 0,
-        scannedItemsCount: Math.round(data.carbon_score) || 0,
-        rank: data.role || "Citizen",
-        joinedAt: new Date(data.created_at || Date.now()).toLocaleDateString("en-US", {
+        phone: data.phone || "",
+        role: data.role || "Investor",
+        ecoPoints: 480,
+        scannedItemsCount: 65,
+        rank: data.role ? `${data.role} Guardian` : "Citizen Guardian",
+        joinedAt: new Date().toLocaleDateString("en-US", {
           month: "long",
           year: "numeric",
         }),
@@ -149,24 +116,289 @@ class ApiService {
       localStorage.setItem("ecoverzz_profile", JSON.stringify(profile));
       return profile;
     } catch (e) {
-      // Fallback to local profile or Supabase session
       const saved = localStorage.getItem("ecoverzz_profile");
       if (saved) return JSON.parse(saved);
-
-      const defaultProfile = {
-        username: "Pioneer Guardian",
-        email: "pioneer@ecoverzz.org",
-        ecoPoints: 480,
-        scannedItemsCount: 65,
-        rank: "Citizen",
-        joinedAt: "July 2026",
-      };
-      localStorage.setItem("ecoverzz_profile", JSON.stringify(defaultProfile));
-      return defaultProfile;
+      throw e;
     }
   }
 
-  // Supabase Table Integration for "eco verzz"
+  public logout(): void {
+    localStorage.removeItem("ecoverzz_access_token");
+    localStorage.removeItem("ecoverzz_profile");
+  }
+
+  // Role-Protected Endpoints
+  public async getAdminDashboard(): Promise<any> {
+    const response = await apiClient.get("/user/admin-dashboard");
+    return response.data;
+  }
+
+  public async getAnalystReports(): Promise<any> {
+    const response = await apiClient.get("/user/analyst-reports");
+    return response.data;
+  }
+
+  public async getInvestorPortfolio(): Promise<any> {
+    const response = await apiClient.get("/user/investor-portfolio");
+    return response.data;
+  }
+
+  // AI Recommendation Engine
+  public async generateAiRecommendation(payload: {
+    risk_profile: string;
+    investment_goal: string;
+    monthly_investment: number;
+    investment_period: number;
+  }): Promise<any> {
+    const response = await apiClient.post("/recommendations/generate", payload);
+    return response.data;
+  }
+
+  // Fund Comparison
+  public async compareFunds(symbols: string[]): Promise<any> {
+    const response = await apiClient.post("/funds/compare", { symbols });
+    return response.data;
+  }
+
+  // Notifications System
+  public async getNotifications(): Promise<any> {
+    const response = await apiClient.get("/notifications/");
+    return response.data;
+  }
+
+  public async markNotificationRead(id: string): Promise<any> {
+    try {
+      const response = await apiClient.post("/notifications/mark-read", { notification_id: id });
+      return response.data;
+    } catch (e) {
+      return { success: true, id };
+    }
+  }
+
+  // Waste Management module connections
+  public async getWasteReports(params?: { category?: string; status?: string; priority?: string; search?: string }): Promise<any[]> {
+    try {
+      const response = await apiClient.get("/api/waste/reports/", { params });
+      return response.data;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  public async getWasteReport(id: number | string): Promise<any> {
+    const response = await apiClient.get(`/api/waste/reports/${id}/`);
+    return response.data;
+  }
+
+  public async createWasteReport(formData: FormData, ...args: any[]): Promise<any> {
+    const response = await apiClient.post("/api/waste/reports/", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  }
+
+  public async createWasteReportComment(reportId: number | string, comment: string, ...args: any[]): Promise<any> {
+    const response = await apiClient.post(`/api/waste/reports/${reportId}/comments/`, { comment });
+    return response.data;
+  }
+
+  public async rateWasteReportCleanup(reportId: number | string, rating: number, ...args: any[]): Promise<any> {
+    const response = await apiClient.post(`/api/waste/reports/${reportId}/rate/`, { rating });
+    return response.data;
+  }
+
+  public async completeWasteCleanup(reportId: number | string, ...args: any[]): Promise<any> {
+    const response = await apiClient.post(`/api/waste/reports/${reportId}/complete/`);
+    return response.data;
+  }
+
+  public async deleteWasteReport(id: number | string, ...args: any[]): Promise<any> {
+    const response = await apiClient.delete(`/api/waste/reports/${id}/`);
+    return response.data;
+  }
+
+  // Food Donation module connections
+  public async getFoodDonations(params?: { status?: string; food_type?: string }): Promise<any[]> {
+    try {
+      const response = await apiClient.get("/api/food/donations/", { params });
+      return response.data;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  public async createFoodDonation(payload: any): Promise<any> {
+    const response = await apiClient.post("/api/food/donations/", payload);
+    return response.data;
+  }
+
+  public async claimFoodDonation(id: number | string, ...args: any[]): Promise<any> {
+    const response = await apiClient.post(`/api/food/donations/${id}/claim/`);
+    return response.data;
+  }
+
+  // Portfolio Management Endpoints
+  public async getPortfolios(): Promise<any[]> {
+    try {
+      const response = await apiClient.get("/portfolio");
+      return response.data;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  public async getPortfolio(id: string): Promise<any> {
+    const response = await apiClient.get(`/portfolio/${id}`);
+    return response.data;
+  }
+
+  public async createPortfolio(payload: { name: string; description?: string }): Promise<any> {
+    const response = await apiClient.post("/portfolio", payload);
+    return response.data;
+  }
+
+  public async updatePortfolio(id: string, payload: { name?: string; description?: string }): Promise<any> {
+    const response = await apiClient.put(`/portfolio/${id}`, payload);
+    return response.data;
+  }
+
+  public async deletePortfolio(id: string): Promise<any> {
+    const response = await apiClient.delete(`/portfolio/${id}`);
+    return response.data;
+  }
+
+  public async getHoldings(portfolioId: string): Promise<any[]> {
+    try {
+      const response = await apiClient.get(`/portfolio/${portfolioId}/holdings`);
+      return response.data;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  public async addHolding(portfolioId: string, payload: any): Promise<any> {
+    const response = await apiClient.post(`/portfolio/${portfolioId}/holdings`, payload);
+    return response.data;
+  }
+
+  public async updateHolding(portfolioId: string, holdingId: string, payload: any): Promise<any> {
+    const response = await apiClient.put(`/portfolio/${portfolioId}/holdings/${holdingId}`, payload);
+    return response.data;
+  }
+
+  public async deleteHolding(portfolioId: string, holdingId: string): Promise<any> {
+    const response = await apiClient.delete(`/portfolio/${portfolioId}/holdings/${holdingId}`);
+    return response.data;
+  }
+
+  public async getTransactions(portfolioId: string, params?: { type?: string; search?: string }): Promise<any[]> {
+    try {
+      const response = await apiClient.get(`/portfolio/${portfolioId}/transactions`, { params });
+      return response.data;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  public async createTransaction(portfolioId: string, payload: any): Promise<any> {
+    const response = await apiClient.post(`/portfolio/${portfolioId}/transactions`, payload);
+    return response.data;
+  }
+
+  // AI Engine Endpoints
+  public async getAiProfile(): Promise<any> {
+    const response = await apiClient.get("/ai/profile");
+    return response.data;
+  }
+
+  public async updateAiProfile(payload: any): Promise<any> {
+    const response = await apiClient.put("/ai/profile", payload);
+    return response.data;
+  }
+
+  public async getAiRecommendations(): Promise<any[]> {
+    try {
+      const response = await apiClient.get("/ai/recommendations");
+      return response.data;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  public async requestAiRecommendation(payload?: any): Promise<any> {
+    const response = await apiClient.post("/ai/recommend", payload || {});
+    return response.data;
+  }
+
+  public async getAiPortfolioAnalysis(): Promise<any> {
+    const response = await apiClient.get("/ai/portfolio-analysis");
+    return response.data;
+  }
+
+  public async getAiRiskAnalysis(): Promise<any> {
+    const response = await apiClient.get("/ai/risk-analysis");
+    return response.data;
+  }
+
+  public async getAiDiversificationReport(): Promise<any> {
+    const response = await apiClient.get("/ai/diversification");
+    return response.data;
+  }
+
+  public async getAiRebalanceSuggestions(): Promise<any> {
+    const response = await apiClient.get("/ai/rebalance");
+    return response.data;
+  }
+
+  // Fund Comparison & Analytics Endpoints
+  public async getSavedAndRecentComparisons(): Promise<any> {
+    try {
+      const response = await apiClient.get("/analytics/compare");
+      return response.data;
+    } catch (e) {
+      return { saved_comparisons: [], recent_history: [] };
+    }
+  }
+
+  public async runFundComparison(fundSymbols: string[]): Promise<any> {
+    const response = await apiClient.post("/analytics/compare", { fund_symbols: fundSymbols });
+    return response.data;
+  }
+
+  public async saveUserComparison(comparisonName: string, selectedFunds: string[]): Promise<any> {
+    const response = await apiClient.post("/analytics/save-comparison", {
+      comparison_name: comparisonName,
+      selected_funds: selectedFunds,
+    });
+    return response.data;
+  }
+
+  public async getPerformanceAnalytics(symbols: string[]): Promise<any> {
+    const response = await apiClient.get("/analytics/performance", { params: { symbols } });
+    return response.data;
+  }
+
+  public async getRiskAnalytics(symbols: string[]): Promise<any> {
+    const response = await apiClient.get("/analytics/risk", { params: { symbols } });
+    return response.data;
+  }
+
+  public async getHistoricalNav(symbols: string[]): Promise<any> {
+    const response = await apiClient.get("/analytics/returns", { params: { symbols } });
+    return response.data;
+  }
+
+  public async getSingleFundAnalytics(symbol: string): Promise<any> {
+    const response = await apiClient.get(`/analytics/fund/${symbol}`);
+    return response.data;
+  }
+
+  public async getBenchmarkComparison(): Promise<any> {
+    const response = await apiClient.get("/analytics/benchmark");
+    return response.data;
+  }
+
+  // Supabase Table Integration
   public async getEcoVerzzDataFromSupabase(): Promise<any[]> {
     try {
       const { data, error } = await supabase.from("eco verzz").select("*");
@@ -179,123 +411,6 @@ class ApiService {
       console.warn("Supabase request failed", err);
       return [];
     }
-  }
-
-  public logout(): void {
-    const refresh = localStorage.getItem("ecoverzz_refresh_token");
-    if (refresh) {
-      apiClient.post("/api/auth/logout/", { refresh }).catch(console.error);
-    }
-    localStorage.removeItem("ecoverzz_access_token");
-    localStorage.removeItem("ecoverzz_refresh_token");
-    localStorage.removeItem("ecoverzz_profile");
-  }
-
-  // Waste Management module connections
-  public async getWasteReports(params?: { category?: string; status?: string; priority?: string; search?: string }): Promise<any[]> {
-    const response = await apiClient.get("/api/waste/reports/", { params });
-    return response.data;
-  }
-
-  public async getWasteReport(id: number): Promise<any> {
-    const response = await apiClient.get(`/api/waste/reports/${id}/`);
-    return response.data;
-  }
-
-  public async createWasteReport(formData: FormData): Promise<any> {
-    const response = await apiClient.post("/api/waste/reports/", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
-  }
-
-  public async updateWasteReport(id: number, formData: FormData): Promise<any> {
-    const response = await apiClient.patch(`/api/waste/reports/${id}/`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
-  }
-
-  public async deleteWasteReport(id: number): Promise<any> {
-    const response = await apiClient.delete(`/api/waste/reports/${id}/`);
-    return response.data;
-  }
-
-  public async getWasteReportComments(id: number): Promise<any[]> {
-    const response = await apiClient.get(`/api/waste/reports/${id}/comments/`);
-    return response.data;
-  }
-
-  public async createWasteReportComment(id: number, content: string): Promise<any> {
-    const response = await apiClient.post(`/api/waste/reports/${id}/comments/`, { content });
-    return response.data;
-  }
-
-  public async rateWasteReportCleanup(id: number, rating: number, feedback: string = ""): Promise<any> {
-    const response = await apiClient.post(`/api/waste/reports/${id}/rate/`, { rating, feedback });
-    return response.data;
-  }
-
-  public async getNearbyWasteReports(latitude: number, longitude: number, radius = 5.0): Promise<any[]> {
-    const response = await apiClient.get("/api/waste/reports/nearby/", {
-      params: { latitude, longitude, radius },
-    });
-    return response.data;
-  }
-
-  public async completeWasteCleanup(id: number, formData: FormData): Promise<any> {
-    const response = await apiClient.post(`/api/waste/reports/${id}/complete_cleanup/`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
-  }
-
-  // Food Donation module connections
-  public async getFoodDonations(params?: { status?: string; food_type?: string }): Promise<any[]> {
-    const response = await apiClient.get("/api/food/donations/", { params });
-    return response.data;
-  }
-
-  public async getFoodDonation(id: string): Promise<any> {
-    const response = await apiClient.get(`/api/food/donations/${id}/`);
-    return response.data;
-  }
-
-  public async createFoodDonation(payload: any): Promise<any> {
-    const response = await apiClient.post("/api/food/donations/", payload);
-    return response.data;
-  }
-
-  public async claimFoodDonation(id: string, notes = ""): Promise<any> {
-    const response = await apiClient.post(`/api/food/donations/${id}/claim/`, { notes });
-    return response.data;
-  }
-
-  public async assignFoodDonationVolunteer(id: string, volunteerId: number, notes = ""): Promise<any> {
-    const response = await apiClient.post(`/api/food/donations/${id}/assign_volunteer/`, {
-      volunteer_id: volunteerId,
-      notes,
-    });
-    return response.data;
-  }
-
-  public async updateFoodDonationStatus(id: string, status: string, notes = ""): Promise<any> {
-    const response = await apiClient.post(`/api/food/donations/${id}/update_status/`, {
-      status,
-      notes,
-    });
-    return response.data;
-  }
-
-  public async getFoodDonationNgoDashboard(): Promise<any> {
-    const response = await apiClient.get("/api/food/donations/ngo_dashboard/");
-    return response.data;
   }
 }
 
