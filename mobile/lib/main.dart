@@ -14,6 +14,7 @@ import 'features/wallet/wallet_screen.dart';
 import 'features/wallet/marketplace_screen.dart';
 import 'features/notifications/notifications_screen.dart';
 import 'features/settings/settings_screen.dart';
+import 'features/schemes/schemes_hub_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -30,6 +31,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/marketplace', builder: (context, state) => const MarketplaceScreen()),
       GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),
       GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+      GoRoute(path: '/schemes', builder: (context, state) => const SchemesHubScreen()),
     ],
   );
 });

@@ -10,6 +10,7 @@
     "typecheck": "npm --prefix frontend run lint"
   },
   "dependencies": {
+    "@cline/sdk": "^0.0.70",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.8"
   }

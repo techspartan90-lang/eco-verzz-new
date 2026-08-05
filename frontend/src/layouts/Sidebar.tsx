@@ -79,6 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { name: "Intel & Live GPS", path: "/citizen/telemetry", icon: Activity },
         { name: "Rewards & Recognition", path: "/citizen/rewards", icon: Award },
         { name: "AI Insights Advisor", path: "/citizen/eco_ai", icon: Cpu },
+        { name: "Govt Schemes Hub", path: "/citizen/schemes", icon: Award },
         { name: "EcoLink Social Network", path: "/citizen/eco_social", icon: Globe },
         { name: "User Passport", path: "/citizen/passport", icon: User },
       ],

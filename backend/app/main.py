@@ -38,6 +38,7 @@ import app.models.prediction
 import app.models.forecast
 import app.models.analytics
 import app.models.recommendation
+import app.models.government
 
 import os
 from fastapi.staticfiles import StaticFiles
@@ -65,6 +66,7 @@ from app.routes.marketplace import router as marketplace_router
 from app.routes.blockchain import router as blockchain_router
 from app.routes.forecast import router as forecast_router
 from app.routes.prediction import router as prediction_router
+from app.routes.schemes import router as schemes_router
 
 
 @asynccontextmanager
@@ -130,6 +132,7 @@ app.include_router(marketplace_router)
 app.include_router(blockchain_router)
 app.include_router(forecast_router)
 app.include_router(prediction_router)
+app.include_router(schemes_router)
 
 
 

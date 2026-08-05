@@ -17,6 +17,7 @@ import { RightSidebar } from "./dashboard/RightSidebar";
 import { EcoChatOverlay } from "./dashboard/EcoChatOverlay";
 import { AdminDashboard } from "./AdminDashboard";
 import { UserDashboard } from "./UserDashboard";
+import { GovernmentSchemesHub } from "./features/GovernmentSchemesHub";
 
 interface DashboardProps {
   profile: UserProfile;
@@ -933,6 +934,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initial
                 { id: "eco_ai", label: "14. AI Insights Advisor", icon: Cpu },
                 { id: "eco_social", label: "15. EcoLink Social Network", icon: Globe },
                 { id: "ecoreport", label: "16. EcoReport Civic", icon: AlertTriangle },
+                { id: "schemes", label: "17. Govt Schemes Hub", icon: Award },
               ].map(item => {
                 const Icon = item.icon;
                 const aliasMap: Record<string, string> = {
@@ -2112,6 +2114,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initial
                       </button>
                     </div>
                   </div>
+                </motion.div>
+              )}
+
+              {/* GOVERNMENT SCHEMES PORTAL */}
+              {activeView === "schemes" && (
+                <motion.div
+                  key="view-schemes"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="w-full"
+                >
+                  <GovernmentSchemesHub />
                 </motion.div>
               )}
 

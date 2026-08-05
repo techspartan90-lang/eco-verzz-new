@@ -412,6 +412,93 @@ class ApiService {
       return [];
     }
   }
+
+  // ==========================================
+  // GOVERNMENT SCHEMES PORTAL ENDPOINTS
+  // ==========================================
+  public async getGovernmentSchemes(): Promise<any> {
+    const response = await apiClient.get("/government/schemes");
+    return response.data;
+  }
+
+  public async getGovernmentSchemeDetails(id: string): Promise<any> {
+    const response = await apiClient.get(`/government/schemes/${id}`);
+    return response.data;
+  }
+
+  public async registerVolunteer(schemeId: string, eventId?: string | null): Promise<any> {
+    const response = await apiClient.post("/government/volunteer/register", {
+      scheme_id: schemeId,
+      event_id: eventId || null
+    });
+    return response.data;
+  }
+
+  public async submitCleanlinessComplaint(payload: {
+    title: string;
+    description: string;
+    location: string;
+    category: string;
+    priority: string;
+  }): Promise<any> {
+    const response = await apiClient.post("/government/complaints", payload);
+    return response.data;
+  }
+
+  public async logTreePlantation(payload: {
+    tree_species: string;
+    latitude: number;
+    longitude: number;
+  }): Promise<any> {
+    const response = await apiClient.post("/government/tree-plantation", payload);
+    return response.data;
+  }
+
+  public async logWaterReport(payload: {
+    category: string;
+    description: string;
+  }): Promise<any> {
+    const response = await apiClient.post("/government/water-report", payload);
+    return response.data;
+  }
+
+  public async logPollutionReport(payload: {
+    pollution_type: string;
+    description: string;
+    location: string;
+    latitude: number;
+    longitude: number;
+  }): Promise<any> {
+    const response = await apiClient.post("/government/pollution-report", payload);
+    return response.data;
+  }
+
+  public async logCarbonActivity(payload: {
+    category: string;
+    value: number;
+  }): Promise<any> {
+    const response = await apiClient.post("/government/carbon-activity", payload);
+    return response.data;
+  }
+
+  public async getGovernmentAnalytics(): Promise<any> {
+    const response = await apiClient.get("/government/analytics");
+    return response.data;
+  }
+
+  public async getGovernmentDashboard(): Promise<any> {
+    const response = await apiClient.get("/government/dashboard");
+    return response.data;
+  }
+
+  public async submitFeedback(payload: {
+    scheme_id: string;
+    rating: number;
+    comment: string;
+  }): Promise<any> {
+    const response = await apiClient.post("/government/feedback", payload);
+    return response.data;
+  }
 }
 
 export const api = new ApiService();

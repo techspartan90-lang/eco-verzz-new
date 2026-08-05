@@ -107,6 +107,28 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ActionTile(
+                    title: 'Govt Schemes',
+                    icon: Icons.gavel_rounded,
+                    color: Colors.tealAccent,
+                    onTap: () => context.push('/schemes'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ActionTile(
+                    title: 'Smart City IoT',
+                    icon: Icons.settings_remote,
+                    color: Colors.indigoAccent,
+                    onTap: () => context.push('/iot'),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
