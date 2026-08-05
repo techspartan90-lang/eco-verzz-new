@@ -23,6 +23,7 @@ interface DashboardProps {
   onLogout: () => void;
   initialView?: string;
   onBackToWebsite?: () => void;
+  hideSidebar?: boolean;
 }
 
 interface Story {
@@ -79,7 +80,7 @@ const COMMUNITY_STORIES: Story[] = [
   }
 ];
 
-export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initialView, onBackToWebsite }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initialView, onBackToWebsite, hideSidebar }) => {
   // Navigation View selection
   const [activeView, setActiveView] = useState<string>(initialView || "home");
 
@@ -803,7 +804,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initial
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#050507] text-white flex flex-col md:flex-row relative font-sans overflow-x-hidden pb-20 md:pb-0">
+    <div className={`w-full ${hideSidebar ? "" : "min-h-screen bg-[#050507]"} text-white flex flex-col md:flex-row relative font-sans overflow-x-hidden pb-20 md:pb-0`}>
       
       {/* Dynamic Floating Score Floaters */}
       <AnimatePresence>
@@ -822,119 +823,123 @@ export const Dashboard: React.FC<DashboardProps> = ({ profile, onLogout, initial
       </AnimatePresence>
 
       {/* LEFT NAVIGATION COLUMN (SIDEBAR) - Collapsible/Expandable Spotify Inspired */}
-      <aside 
-        id="sidebar"
-        className="hidden md:flex fixed left-0 top-0 h-screen bg-[#09090b]/90 backdrop-blur-2xl border-r border-white/5 z-40 flex-col justify-between py-6 transition-all duration-300 w-20 hover:w-64 group"
-      >
-        <div className="flex flex-col gap-8 w-full px-4">
-          {/* Brand Logo & Mini Rotating Earth Globe */}
-          <div className="flex items-center gap-3 pl-2 overflow-hidden select-none">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-              <Leaf className="w-4 h-4 text-emerald-400 animate-pulse" />
+      {!hideSidebar && (
+        <aside 
+          id="sidebar"
+          className="hidden md:flex fixed left-0 top-0 h-screen bg-[#09090b]/90 backdrop-blur-2xl border-r border-white/5 z-40 flex-col justify-between py-6 transition-all duration-300 w-20 hover:w-64 group"
+        >
+          <div className="flex flex-col gap-8 w-full px-4">
+            {/* Brand Logo & Mini Rotating Earth Globe */}
+            <div className="flex items-center gap-3 pl-2 overflow-hidden select-none">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                <Leaf className="w-4 h-4 text-emerald-400 animate-pulse" />
+              </div>
+              <span className="font-extrabold tracking-widest text-emerald-400 font-mono text-sm uppercase opacity-0 group-hover:opacity-100 transition-all duration-300 truncate">
+                EcoVerzz
+              </span>
             </div>
-            <span className="font-extrabold tracking-widest text-emerald-400 font-mono text-sm uppercase opacity-0 group-hover:opacity-100 transition-all duration-300 truncate">
-              EcoVerzz
-            </span>
+
+            {/* Navigation Links */}
+            <nav className="flex flex-col gap-2 w-full">
+              {[
+                { id: "ai_scan", label: "1. EcoScan AI Guide", icon: Camera },
+                { id: "awareness", label: "2. EcoPulse Hub", icon: Zap },
+                { id: "missions", label: "3. Eco Missions", icon: Target },
+                { id: "home", label: "4. Impact Matrix", icon: BarChart2 },
+                { id: "marketplace", label: "5. Circular Exchange", icon: ShoppingBag },
+                { id: "food_rescue", label: "6. Food Rescue Network", icon: Heart },
+                { id: "waste_reports", label: "7. Community Cleanup", icon: Users },
+                { id: "settings", label: "8. Business & CSR Portal", icon: Building2 },
+                { id: "recycle_connect", label: "9. Recycle Connect", icon: RefreshCw },
+                { id: "passport", label: "10. User Profile & Identity", icon: User },
+                { id: "telemetry", label: "11 & 12. Intel & GPS", icon: Activity },
+                { id: "rewards", label: "13. Rewards & Recognition", icon: Award },
+                { id: "eco_ai", label: "14. AI Insights Advisor", icon: Cpu },
+                { id: "eco_social", label: "15. EcoLink Social Network", icon: Globe },
+                { id: "ecoreport", label: "16. EcoReport Civic", icon: AlertTriangle },
+              ].map(item => {
+                const Icon = item.icon;
+                const aliasMap: Record<string, string> = {
+                  recycle_connect: "ai_scan",
+                  ecoreport: "waste_reports",
+                  community_cleanup: "waste_reports",
+                  business_csr: "settings",
+                  user_profile: "passport",
+                  rewards_recognition: "rewards",
+                  ai_insights: "eco_ai",
+                  ecolink_social: "eco_social",
+                  ecoscan: "ai_scan",
+                  ecopulse: "awareness",
+                  ecomissions: "missions",
+                  impact_dashboard: "home",
+                  circular_marketplace: "marketplace",
+                };
+                const targetId = aliasMap[item.id] || item.id;
+                const isActive = activeView === item.id || activeView === targetId;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { audioEngine.playTick(); setActiveView(targetId); }}
+                    className={`w-full py-3 px-3.5 rounded-xl flex items-center gap-4 transition-all relative overflow-hidden group/item cursor-pointer text-left ${
+                      isActive 
+                        ? "text-emerald-400 bg-emerald-500/5 font-semibold shadow-[inset_0_0_12px_rgba(52,211,153,0.06)] border border-emerald-500/10" 
+                        : "text-gray-400 hover:text-white hover:bg-white/[0.02]"
+                    }`}
+                  >
+                    <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-emerald-400 drop-shadow-[0_0_8px_#34d399]" : "group-hover/item:scale-110 transition-transform"}`} />
+                    <span className="text-xs tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 truncate font-medium">
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex flex-col gap-2 w-full">
-            {[
-              { id: "ai_scan", label: "1. EcoScan AI Guide", icon: Camera },
-              { id: "awareness", label: "2. EcoPulse Hub", icon: Zap },
-              { id: "missions", label: "3. Eco Missions", icon: Target },
-              { id: "home", label: "4. Impact Matrix", icon: BarChart2 },
-              { id: "marketplace", label: "5. Circular Exchange", icon: ShoppingBag },
-              { id: "food_rescue", label: "6. Food Rescue Network", icon: Heart },
-              { id: "waste_reports", label: "7. Community Cleanup", icon: Users },
-              { id: "settings", label: "8. Business & CSR Portal", icon: Building2 },
-              { id: "recycle_connect", label: "9. Recycle Connect", icon: RefreshCw },
-              { id: "passport", label: "10. User Profile & Identity", icon: User },
-              { id: "telemetry", label: "11 & 12. Intel & GPS", icon: Activity },
-              { id: "rewards", label: "13. Rewards & Recognition", icon: Award },
-              { id: "eco_ai", label: "14. AI Insights Advisor", icon: Cpu },
-              { id: "eco_social", label: "15. EcoLink Social Network", icon: Globe },
-              { id: "ecoreport", label: "16. EcoReport Civic", icon: AlertTriangle },
-            ].map(item => {
-              const Icon = item.icon;
-              const aliasMap: Record<string, string> = {
-                recycle_connect: "ai_scan",
-                ecoreport: "waste_reports",
-                community_cleanup: "waste_reports",
-                business_csr: "settings",
-                user_profile: "passport",
-                rewards_recognition: "rewards",
-                ai_insights: "eco_ai",
-                ecolink_social: "eco_social",
-                ecoscan: "ai_scan",
-                ecopulse: "awareness",
-                ecomissions: "missions",
-                impact_dashboard: "home",
-                circular_marketplace: "marketplace",
-              };
-              const targetId = aliasMap[item.id] || item.id;
-              const isActive = activeView === item.id || activeView === targetId;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => { audioEngine.playTick(); setActiveView(targetId); }}
-                  className={`w-full py-3 px-3.5 rounded-xl flex items-center gap-4 transition-all relative overflow-hidden group/item cursor-pointer text-left ${
-                    isActive 
-                      ? "text-emerald-400 bg-emerald-500/5 font-semibold shadow-[inset_0_0_12px_rgba(52,211,153,0.06)] border border-emerald-500/10" 
-                      : "text-gray-400 hover:text-white hover:bg-white/[0.02]"
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-emerald-400 drop-shadow-[0_0_8px_#34d399]" : "group-hover/item:scale-110 transition-transform"}`} />
-                  <span className="text-xs tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 truncate font-medium">
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* User profile details locked at bottom of sidebar */}
-        <div className="w-full px-4 overflow-hidden border-t border-white/5 pt-4">
-          <div className="flex items-center gap-3 pl-1.5 py-1.5 bg-white/[0.01] hover:bg-white/[0.04] border border-white/5 rounded-2xl transition-all">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white text-xs font-black shrink-0">
-              {profile?.username ? profile.username.substring(0, 2).toUpperCase() : "EV"}
-            </div>
-            <div className="text-left opacity-0 group-hover:opacity-100 transition-opacity duration-300 truncate">
-              <h5 className="text-xs font-black text-white leading-none">{profile?.username || "Pioneer"}</h5>
-              <span className="text-[9px] text-gray-500 font-mono">Level {level} Guardian</span>
+          {/* User profile details locked at bottom of sidebar */}
+          <div className="w-full px-4 overflow-hidden border-t border-white/5 pt-4">
+            <div className="flex items-center gap-3 pl-1.5 py-1.5 bg-white/[0.01] hover:bg-white/[0.04] border border-white/5 rounded-2xl transition-all">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white text-xs font-black shrink-0">
+                {profile?.username ? profile.username.substring(0, 2).toUpperCase() : "EV"}
+              </div>
+              <div className="text-left opacity-0 group-hover:opacity-100 transition-opacity duration-300 truncate">
+                <h5 className="text-xs font-black text-white leading-none">{profile?.username || "Pioneer"}</h5>
+                <span className="text-[9px] text-gray-500 font-mono">Level {level} Guardian</span>
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      )}
 
       {/* MOBILE BOTTOM NAVIGATION */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-[#09090b]/95 backdrop-blur-md border-t border-white/5 z-40 flex justify-around items-center px-4">
-        {[
-          { id: "home", icon: Home },
-          { id: "telemetry", icon: Activity },
-          { id: "ai_scan", icon: Camera },
-          { id: "marketplace", icon: ShoppingBag },
-          { id: "waste_reports", icon: Trash2 },
-          { id: "passport", icon: Award },
-          { id: "eco_ai", icon: MessageSquare }
-        ].map(item => {
-          const Icon = item.icon;
-          const isActive = activeView === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => { audioEngine.playTick(); setActiveView(item.id); }}
-              className={`p-2 rounded-xl flex items-center justify-center transition-all ${isActive ? "text-emerald-400" : "text-gray-400"}`}
-            >
-              <Icon className="w-5 h-5" />
-            </button>
-          );
-        })}
-      </div>
+      {!hideSidebar && (
+        <div className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-[#09090b]/95 backdrop-blur-md border-t border-white/5 z-40 flex justify-around items-center px-4">
+          {[
+            { id: "home", icon: Home },
+            { id: "telemetry", icon: Activity },
+            { id: "ai_scan", icon: Camera },
+            { id: "marketplace", icon: ShoppingBag },
+            { id: "waste_reports", icon: Trash2 },
+            { id: "passport", icon: Award },
+            { id: "eco_ai", icon: MessageSquare }
+          ].map(item => {
+            const Icon = item.icon;
+            const isActive = activeView === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => { audioEngine.playTick(); setActiveView(item.id); }}
+                className={`p-2 rounded-xl flex items-center justify-center transition-all ${isActive ? "text-emerald-400" : "text-gray-400"}`}
+              >
+                <Icon className="w-5 h-5" />
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* MAIN CONTAINER LAYOUT */}
-      <main className="flex-1 md:ml-20 group-hover/sidebar:md:ml-20 transition-all duration-300 flex justify-center w-full min-h-screen">
+      <main className={`flex-1 ${hideSidebar ? "" : "md:ml-20 group-hover/sidebar:md:ml-20"} transition-all duration-300 flex justify-center w-full min-h-screen`}>
         <div className="w-full max-w-[1440px] flex flex-col lg:flex-row items-start justify-center gap-8 px-4 md:px-8 py-6">
           
           {/* CENTER COLUMN: Feed & Active Views */}

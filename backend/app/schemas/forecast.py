@@ -4,6 +4,12 @@ from datetime import datetime, date
 from uuid import UUID
 
 
+class StandardResponse(BaseModel):
+    success: bool = True
+    message: str = "Operation completed successfully"
+    data: Optional[Any] = None
+
+
 class ForecastResponse(BaseModel):
     forecast_type: str
     days: int

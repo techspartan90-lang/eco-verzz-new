@@ -4,7 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/storage/secure_storage_service.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,28 +22,28 @@ class SettingsScreen extends StatelessWidget {
           SwitchListTile(
             value: true,
             onChanged: (val) {},
-            activeColor: AppColors.primaryGreen,
+            activeThumbColor: AppColors.primaryGreen,
             title: const Text('Dark Mode Theme', style: TextStyle(color: AppColors.textLight)),
             subtitle: const Text('Material 3 HSL Dark Mode active', style: TextStyle(color: AppColors.textMuted)),
           ),
           SwitchListTile(
             value: true,
             onChanged: (val) {},
-            activeColor: AppColors.primaryGreen,
+            activeThumbColor: AppColors.primaryGreen,
             title: const Text('Push Notifications & FCM Alerts', style: TextStyle(color: AppColors.textLight)),
             subtitle: const Text('Receive real-time emergency & report updates', style: TextStyle(color: AppColors.textMuted)),
           ),
-          ListTile(
-            leading: const Icon(Icons.security, color: AppColors.accentBlue),
-            title: const Text('Biometric Authentication', style: TextStyle(color: AppColors.textLight)),
-            subtitle: const Text('FaceID / Fingerprint security login', style: TextStyle(color: AppColors.textMuted)),
-            trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+          const ListTile(
+            leading: Icon(Icons.security, color: AppColors.accentBlue),
+            title: Text('Biometric Authentication', style: TextStyle(color: AppColors.textLight)),
+            subtitle: Text('FaceID / Fingerprint security login', style: TextStyle(color: AppColors.textMuted)),
+            trailing: Icon(Icons.chevron_right, color: AppColors.textMuted),
           ),
-          ListTile(
-            leading: const Icon(Icons.cloud_sync, color: AppColors.accentAmber),
-            title: const Text('Offline Database Sync Status', style: TextStyle(color: AppColors.textLight)),
-            subtitle: const Text('Background synchronization active', style: TextStyle(color: AppColors.textMuted)),
-            trailing: const Icon(Icons.check_circle, color: AppColors.primaryGreen),
+          const ListTile(
+            leading: Icon(Icons.cloud_sync, color: AppColors.accentAmber),
+            title: Text('Offline Database Sync Status', style: TextStyle(color: AppColors.textLight)),
+            subtitle: Text('Background synchronization active', style: TextStyle(color: AppColors.textMuted)),
+            trailing: Icon(Icons.check_circle, color: AppColors.primaryGreen),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(

@@ -4,6 +4,12 @@ from datetime import datetime
 from uuid import UUID
 
 
+class StandardResponse(BaseModel):
+    success: bool = True
+    message: str = "Operation completed successfully"
+    data: Optional[Any] = None
+
+
 class LocationResponse(BaseModel):
     latitude: float
     longitude: float

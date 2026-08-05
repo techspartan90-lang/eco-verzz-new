@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
@@ -24,6 +24,9 @@ const AdminPage = lazy(() => import("./pages/Admin"));
 // Lazy load AI Recommendation engine module page
 const AiDashboardPage = lazy(() => import("./pages/AiDashboard"));
 
+// Lazy load Citizen/Civic Dashboard page
+const CitizenDashboardPage = lazy(() => import("./pages/CitizenDashboard"));
+
 // Loading Fallback Spinner
 const PageLoadingSpinner: React.FC = () => (
   <div className="min-h-[400px] w-full flex flex-col items-center justify-center p-8 text-slate-400">
@@ -39,7 +42,25 @@ const PageLoadingSpinner: React.FC = () => (
 );
 
 const RootIndexRoute: React.FC = () => {
-  return <EcoVerzzWebsite />;
+  const navigate = useNavigate();
+  const { token } = useAuth();
+
+  const handleLaunchApp = (view?: string) => {
+    const citizenViews = ["ecoscan", "complaint", "food_rescue", "recycler_net", "rewards", "ai_bot", "analytics", "waste_reports"];
+    const targetView = view === "complaint" ? "waste_reports" : (view === "ecoscan" ? "ai_scan" : view);
+
+    if (token) {
+      if (citizenViews.includes(view || "")) {
+        navigate(`/citizen/${targetView}`);
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      navigate("/login", { state: { redirectTo: `/citizen/${targetView}` } });
+    }
+  };
+
+  return <EcoVerzzWebsite onLaunchApp={handleLaunchApp} />;
 };
 
 export default function App() {
@@ -86,6 +107,7 @@ export default function App() {
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/citizen/:view" element={<CitizenDashboardPage />} />
           </Route>
 
           {/* Catch-all fallback */}

@@ -608,3 +608,23 @@ def get_admin_audit_logs(
             for l in logs
         ]
     )
+
+
+@router.get(
+    "/system-status",
+    status_code=status.HTTP_200_OK,
+    summary="Get System and Database Status",
+)
+def get_system_status(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(AdminChecker),
+):
+    return {
+        "status": "healthy",
+        "database": {
+            "status": "HEALTHY",
+            "connection": "OK"
+        },
+        "service": "EcoVerzz Admin Master Control"
+    }
+

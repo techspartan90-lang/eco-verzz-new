@@ -19,7 +19,6 @@ class AppTheme {
         primary: AppColors.primaryGreen,
         secondary: AppColors.accentAmber,
         surface: AppColors.cardDark,
-        background: AppColors.darkBackground,
       ),
       cardTheme: CardTheme(
         color: AppColors.cardDark,

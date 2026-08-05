@@ -4,7 +4,7 @@ import '../../services/ai_service.dart';
 import '../../shared/widgets/custom_button.dart';
 
 class AIClassifierScreen extends StatefulWidget {
-  const AIClassifierScreen({Key? key}) : super(key: key);
+  const AIClassifierScreen({super.key});
 
   @override
   State<AIClassifierScreen> createState() => _AIClassifierScreenState();
@@ -39,9 +39,9 @@ class _AIClassifierScreenState extends State<AIClassifierScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.accentAmber, width: 2),
               ),
-              child: Column(
+              child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(Icons.psychology, size: 64, color: AppColors.accentAmber),
                   SizedBox(height: 8),
                   Text('YOLOv8 & OpenCV Classification Engine', style: TextStyle(color: AppColors.textMuted)),

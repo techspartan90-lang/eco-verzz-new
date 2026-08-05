@@ -127,61 +127,8 @@ app.include_router(forecast_router)
 app.include_router(prediction_router)
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    yield
 
 
-app = FastAPI(
-    title="EcoVerzz AI",
-    version="1.0",
-    lifespan=lifespan
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-base_dir = os.path.dirname(os.path.abspath(__file__))
-static_reports_dir = os.path.join(base_dir, "static")
-static_annotated_dir = os.path.join(static_reports_dir, "annotated")
-uploads_dir = os.path.join(base_dir, "uploads")
-uploads_predictions_dir = os.path.join(uploads_dir, "predictions")
-
-os.makedirs(static_reports_dir, exist_ok=True)
-os.makedirs(static_annotated_dir, exist_ok=True)
-os.makedirs(uploads_dir, exist_ok=True)
-os.makedirs(uploads_predictions_dir, exist_ok=True)
-
-app.mount("/static", StaticFiles(directory=static_reports_dir), name="static")
-app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
-
-app.include_router(user_router)
-app.include_router(auth_router)
-app.include_router(recommendations_router)
-app.include_router(funds_router)
-app.include_router(notifications_router)
-app.include_router(reports_router)
-app.include_router(admin_router)
-app.include_router(portfolio_router)
-app.include_router(ai_router)
-app.include_router(analytics_router)
-app.include_router(dashboard_router)
-app.include_router(waste_router)
-app.include_router(chat_router)
-app.include_router(alert_router)
-app.include_router(device_router)
-app.include_router(sensor_router)
-app.include_router(gis_router)
-app.include_router(wallet_router)
-app.include_router(reward_router)
-app.include_router(marketplace_router)
-app.include_router(blockchain_router)
 
 
 

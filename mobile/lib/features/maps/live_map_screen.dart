@@ -3,7 +3,7 @@ import '../../core/theme/app_theme.dart';
 import '../../services/iot_service.dart';
 
 class LiveMapScreen extends StatefulWidget {
-  const LiveMapScreen({Key? key}) : super(key: key);
+  const LiveMapScreen({super.key});
 
   @override
   State<LiveMapScreen> createState() => _LiveMapScreenState();
@@ -32,10 +32,10 @@ class _LiveMapScreenState extends State<LiveMapScreen> {
           Expanded(
             child: Container(
               color: AppColors.cardDark,
-              child: Center(
+              child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(Icons.map_outlined, size: 80, color: AppColors.accentBlue),
                     SizedBox(height: 12),
                     Text('OpenStreetMap & Leaflet Interactive GIS Layer', style: TextStyle(color: AppColors.textLight, fontSize: 16, fontWeight: FontWeight.bold)),

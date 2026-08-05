@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import { useLoginForm, LoginFormData } from "../hooks/useAuthForm";
@@ -13,6 +13,7 @@ import {
 export const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -29,7 +30,11 @@ export const Login: React.FC = () => {
       toast.success("Welcome back to EcoVerzz!", {
         description: "Logged in successfully.",
       });
-      navigate("/dashboard", { replace: true });
+      const dest = location.state?.redirectTo || "/dashboard";
+      navigate(dest, { 
+        replace: true, 
+        state: { initialView: location.state?.initialView } 
+      });
     } catch (err: any) {
       const message = err.message || "Failed to log in. Please check your credentials.";
       setApiError(message);

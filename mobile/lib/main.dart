@@ -44,7 +44,7 @@ void main() {
 }
 
 class EcoVerzzApp extends ConsumerWidget {
-  const EcoVerzzApp({Key? key}) : super(key: key);
+  const EcoVerzzApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

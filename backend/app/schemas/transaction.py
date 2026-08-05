@@ -4,6 +4,12 @@ from datetime import datetime
 from uuid import UUID
 
 
+class StandardResponse(BaseModel):
+    success: bool = True
+    message: str = "Operation completed successfully"
+    data: Optional[Any] = None
+
+
 class MintPayload(BaseModel):
     recipient_address: str = Field(..., min_length=10, max_length=50)
     credit_amount: float = Field(..., gt=0.0)

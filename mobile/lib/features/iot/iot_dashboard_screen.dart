@@ -3,7 +3,7 @@ import '../../core/theme/app_theme.dart';
 import '../../services/iot_service.dart';
 
 class IoTDashboardScreen extends StatefulWidget {
-  const IoTDashboardScreen({Key? key}) : super(key: key);
+  const IoTDashboardScreen({super.key});
 
   @override
   State<IoTDashboardScreen> createState() => _IoTDashboardScreenState();
@@ -45,7 +45,7 @@ class _IoTDashboardScreenState extends State<IoTDashboardScreen> {
               trailing: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.2),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(d['status'] ?? 'Online', style: const TextStyle(color: AppColors.primaryGreen, fontWeight: FontWeight.bold)),

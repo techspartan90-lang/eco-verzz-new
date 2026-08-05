@@ -17,6 +17,18 @@ import {
   ChevronRight,
   Leaf,
   LogOut,
+  AlertTriangle,
+  Camera,
+  Zap,
+  Target,
+  ShoppingBag,
+  Heart,
+  Users,
+  Activity,
+  Award,
+  Cpu,
+  Globe,
+  User,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -36,27 +48,51 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const isNavActive = (path: string) => location.pathname === path;
 
-  const navigationItems = [
-    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Mutual Funds", path: "/mutual-funds", icon: PieChart },
-    { name: "Portfolio", path: "/portfolio", icon: Wallet },
-    { name: "AI Recommendations", path: "/recommendations", icon: Sparkles, badge: "AI" },
-    { name: "Compare Funds", path: "/compare", icon: Scale },
-    { name: "Reports", path: "/reports", icon: FileSpreadsheet },
-    { name: "Watchlist", path: "/watchlist", icon: Bookmark },
-    { name: "Notifications", path: "/notifications", icon: Bell },
-    { name: "Settings", path: "/settings", icon: Settings },
-  ];
+  const adminItems = user?.role === "Admin" ? [{
+    name: "Admin Portal",
+    path: "/admin",
+    icon: ShieldAlert,
+    badge: "Admin",
+  }] : [];
 
-  // Conditional Admin Route for Admin Role Users Only
-  if (user?.role === "Admin") {
-    navigationItems.push({
-      name: "Admin",
-      path: "/admin",
-      icon: ShieldAlert,
-      badge: "Admin",
-    });
-  }
+  const navigationGroups = [
+    {
+      title: "ESG Investment",
+      items: [
+        { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+        { name: "Mutual Funds", path: "/mutual-funds", icon: PieChart },
+        { name: "Portfolio", path: "/portfolio", icon: Wallet },
+        { name: "AI Recommendations", path: "/recommendations", icon: Sparkles, badge: "AI" },
+        { name: "Compare Funds", path: "/compare", icon: Scale },
+        { name: "Reports", path: "/reports", icon: FileSpreadsheet },
+      ],
+    },
+    {
+      title: "Civic & Community",
+      items: [
+        { name: "EcoScan AI Guide", path: "/citizen/ai_scan", icon: Camera },
+        { name: "EcoPulse Hub", path: "/citizen/awareness", icon: Zap },
+        { name: "Eco Missions", path: "/citizen/missions", icon: Target },
+        { name: "Circular Exchange", path: "/citizen/marketplace", icon: ShoppingBag },
+        { name: "Food Rescue Network", path: "/citizen/food_rescue", icon: Heart },
+        { name: "Community Cleanup", path: "/citizen/waste_reports", icon: Users },
+        { name: "Intel & Live GPS", path: "/citizen/telemetry", icon: Activity },
+        { name: "Rewards & Recognition", path: "/citizen/rewards", icon: Award },
+        { name: "AI Insights Advisor", path: "/citizen/eco_ai", icon: Cpu },
+        { name: "EcoLink Social Network", path: "/citizen/eco_social", icon: Globe },
+        { name: "User Passport", path: "/citizen/passport", icon: User },
+      ],
+    },
+    {
+      title: "Identity & System",
+      items: [
+        ...adminItems,
+        { name: "Watchlist", path: "/watchlist", icon: Bookmark },
+        { name: "Notifications", path: "/notifications", icon: Bell },
+        { name: "Settings", path: "/settings", icon: Settings },
+      ],
+    },
+  ];
 
   return (
     <aside
@@ -84,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 EcoVerzz AI
               </span>
               <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">
-                ESG Investment
+                ESG Platform
               </span>
             </motion.div>
           )}
@@ -105,56 +141,65 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5 scrollbar-none">
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          const active = isNavActive(item.path);
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4 scrollbar-none">
+        {navigationGroups.map((group, groupIdx) => (
+          <div key={group.title} className="space-y-1.5">
+            {!collapsed ? (
+              <div className={`text-[9px] font-bold text-slate-500 tracking-wider uppercase px-3 select-none ${groupIdx > 0 ? "pt-2" : ""}`}>
+                {group.title}
+              </div>
+            ) : groupIdx > 0 ? (
+              <div className="border-t border-slate-850 dark:border-slate-800/50 my-2 mx-2" />
+            ) : null}
 
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={onCloseMobile}
-              className={({ isActive }) =>
-                `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
-                  isActive
-                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-md shadow-emerald-500/5"
-                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
-                }`
-              }
-            >
-              {active && (
-                <motion.div
-                  layoutId="activeSideBarTab"
-                  className="absolute left-0 w-1 h-6 bg-emerald-400 rounded-r-full"
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
-              <Icon
-                className={`w-5 h-5 shrink-0 transition-transform group-hover:scale-110 ${
-                  active ? "text-emerald-400" : "text-slate-400 group-hover:text-slate-200"
-                }`}
-              />
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const active = isNavActive(item.path);
 
-              {!collapsed && (
-                <div className="flex items-center justify-between w-full overflow-hidden">
-                  <span className="truncate">{item.name}</span>
-                  {item.badge && (
-                    <span
-                      className={`text-[9px] px-1.5 py-0.5 rounded-full font-extrabold uppercase tracking-wide ${
-                        item.badge === "Admin"
-                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                          : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  state={(item as any).state}
+                  onClick={onCloseMobile}
+                  className={({ isActive }) =>
+                    `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
+                      isActive
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-md shadow-emerald-500/5"
+                        : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
+                    }`
+                  }
+                >
+                  {active && (
+                    <motion.div
+                      layoutId="activeSideBarTab"
+                      className="absolute left-0 w-1 h-6 bg-emerald-400 rounded-r-full"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
                   )}
-                </div>
-              )}
-            </NavLink>
-          );
-        })}
+                  <Icon
+                    className={`w-5 h-5 shrink-0 transition-transform group-hover:scale-110 ${
+                      active ? "text-emerald-400" : "text-slate-400 group-hover:text-slate-200"
+                    }`}
+                  />
+
+                  {!collapsed && (
+                    <div className="flex items-center justify-between w-full overflow-hidden">
+                      <span className="truncate">{item.name}</span>
+                      {item.badge && (
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded-full font-extrabold uppercase tracking-wide bg-emerald-500/20 text-emerald-300 border border-emerald-500/30`}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </NavLink>
+              );
+            })}
+          </div>
+        ))}
       </div>
 
       {/* User Profile Footer Card */}

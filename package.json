@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix frontend run dev",
+    "dev-backend": "cd backend && venv\\Scripts\\uvicorn app.main:app --reload",
     "build": "cd frontend && npm install && npm run build",
     "start": "npm --prefix frontend run start",
     "lint": "npm --prefix frontend run lint",

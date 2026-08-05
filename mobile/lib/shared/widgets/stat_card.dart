@@ -8,12 +8,12 @@ class StatCard extends StatelessWidget {
   final Color iconColor;
 
   const StatCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.icon,
     this.iconColor = AppColors.primaryGreen,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class StatCard extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: iconColor.withOpacity(0.15),
+              backgroundColor: iconColor.withValues(alpha: 0.15),
               radius: 24,
               child: Icon(icon, color: iconColor, size: 28),
             ),

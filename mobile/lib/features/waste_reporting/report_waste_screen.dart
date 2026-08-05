@@ -6,7 +6,7 @@ import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_text_field.dart';
 
 class ReportWasteScreen extends StatefulWidget {
-  const ReportWasteScreen({Key? key}) : super(key: key);
+  const ReportWasteScreen({super.key});
 
   @override
   State<ReportWasteScreen> createState() => _ReportWasteScreenState();
@@ -53,9 +53,9 @@ class _ReportWasteScreenState extends State<ReportWasteScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.primaryGreen, width: 1.5),
                 ),
-                child: Column(
+                child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(Icons.camera_alt_outlined, size: 48, color: AppColors.primaryGreen),
                     SizedBox(height: 8),
                     Text('Tap to Capture or Upload Image', style: TextStyle(color: AppColors.textMuted)),
@@ -70,7 +70,7 @@ class _ReportWasteScreenState extends State<ReportWasteScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 dropdownColor: AppColors.cardDark,
                 style: const TextStyle(color: AppColors.textLight),
                 decoration: InputDecoration(

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import { useRegisterForm, RegisterFormData } from "../hooks/useAuthForm";
@@ -13,6 +13,7 @@ import {
 export const Register: React.FC = () => {
   const { register: registerAuth } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -39,7 +40,11 @@ export const Register: React.FC = () => {
       toast.success("Account Created Successfully!", {
         description: `Welcome to EcoVerzz AI as an ${data.role}.`,
       });
-      navigate("/dashboard", { replace: true });
+      const dest = location.state?.redirectTo || "/dashboard";
+      navigate(dest, { 
+        replace: true, 
+        state: { initialView: location.state?.initialView } 
+      });
     } catch (err: any) {
       const message = err.message || "Registration failed. Please try again.";
       setApiError(message);

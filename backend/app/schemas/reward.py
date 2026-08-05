@@ -4,6 +4,12 @@ from datetime import datetime
 from uuid import UUID
 
 
+class StandardResponse(BaseModel):
+    success: bool = True
+    message: str = "Operation completed successfully"
+    data: Optional[Any] = None
+
+
 class RedeemPayload(BaseModel):
     item_id: UUID
     quantity: int = Field(default=1, ge=1)

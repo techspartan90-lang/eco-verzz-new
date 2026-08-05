@@ -4,6 +4,12 @@ from datetime import datetime
 from uuid import UUID
 
 
+class StandardResponse(BaseModel):
+    success: bool = True
+    message: str = "Operation completed successfully"
+    data: Optional[Any] = None
+
+
 class SensorCreate(BaseModel):
     device_id: UUID
     sensor_type: str = Field(..., example="AQI")  # AQI, Temperature, Humidity, pH, Gas, Fill Level

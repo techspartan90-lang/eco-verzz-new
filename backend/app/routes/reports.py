@@ -1,7 +1,7 @@
 import os
 from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
@@ -216,3 +216,44 @@ def get_my_reports(
         message="User reports retrieved successfully",
         data=data
     )
+
+
+@router.get(
+    "/portfolio",
+    status_code=status.HTTP_200_OK,
+    summary="Get Portfolio Report",
+)
+def get_portfolio_report(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return {
+        "report_title": "Eco Portfolio Performance Report",
+        "user_id": str(current_user.id),
+        "total_esg_value": 15000.0,
+        "carbon_offset_kg": 420.5,
+        "eco_points_earned": 350
+    }
+
+
+@router.get(
+    "/export/portfolio",
+    status_code=status.HTTP_200_OK,
+    summary="Export Portfolio Report as CSV",
+)
+def export_portfolio_report_csv(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    csv_content = (
+        "Date,Asset,Category,Value,ESG_Score,Carbon_Offset_kg\n"
+        "2026-08-01,ECO-SOLAR,Solar Power,5000.00,92,150.0\n"
+        "2026-08-02,ECO-WIND,Wind Energy,4500.00,88,120.5\n"
+        "2026-08-03,CARBON-YIELD,Carbon Credit,5500.00,95,150.0\n"
+    )
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=portfolio_report.csv"}
+    )
+

@@ -4,6 +4,12 @@ from datetime import datetime
 from uuid import UUID
 
 
+class StandardResponse(BaseModel):
+    success: bool = True
+    message: str = "Operation completed successfully"
+    data: Optional[Any] = None
+
+
 class EmergencyAlertCreate(BaseModel):
     alert_type: str = Field(..., example="Flood")  # Flood, Fire, Pollution, Chemical Leak, Cyclone, Storm, Heatwave, Water Contamination, Illegal Dumping, Wildlife Emergency
     severity: str = Field(default="High", example="Critical")  # Low, Medium, High, Critical
