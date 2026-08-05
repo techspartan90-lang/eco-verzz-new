@@ -43,20 +43,15 @@ const PageLoadingSpinner: React.FC = () => (
 
 const RootIndexRoute: React.FC = () => {
   const navigate = useNavigate();
-  const { token } = useAuth();
 
   const handleLaunchApp = (view?: string) => {
     const citizenViews = ["ecoscan", "complaint", "food_rescue", "recycler_net", "rewards", "ai_bot", "analytics", "waste_reports"];
-    const targetView = view === "complaint" ? "waste_reports" : (view === "ecoscan" ? "ai_scan" : view);
+    const targetView = view === "complaint" ? "waste_reports" : (view === "ecoscan" ? "ai_scan" : view || "home");
 
-    if (token) {
-      if (citizenViews.includes(view || "")) {
-        navigate(`/citizen/${targetView}`);
-      } else {
-        navigate("/dashboard");
-      }
+    if (citizenViews.includes(view || "")) {
+      navigate(`/citizen/${targetView}`);
     } else {
-      navigate("/login", { state: { redirectTo: `/citizen/${targetView}` } });
+      navigate("/dashboard");
     }
   };
 
@@ -89,14 +84,8 @@ export default function App() {
             }
           />
 
-          {/* Protected SaaS Application Shell Routes */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }
-          >
+          {/* Optional/Public SaaS Application Shell Routes */}
+          <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />
             <Route path="/mutual-funds" element={<MutualFundsPage />} />
@@ -104,10 +93,33 @@ export default function App() {
             <Route path="/compare" element={<ComparePage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/admin" element={<AdminPage />} />
             <Route path="/citizen/:view" element={<CitizenDashboardPage />} />
+
+            {/* Protected Routes inside the Shell */}
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
 
           {/* Catch-all fallback */}

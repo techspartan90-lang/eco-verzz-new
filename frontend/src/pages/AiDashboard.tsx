@@ -27,8 +27,12 @@ import {
   useAiMutations,
 } from "../hooks/useAiEngine";
 import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export const AiDashboardPage: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<
     "recommendations" | "profile" | "analysis" | "risk" | "diversification" | "rebalance"
   >("recommendations");
@@ -101,7 +105,16 @@ export const AiDashboardPage: React.FC = () => {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => {
+                if (!user && tab.id !== "recommendations") {
+                  toast.error("Authentication Required", {
+                    description: `Please sign in to access the ${tab.label}.`,
+                  });
+                  navigate("/login", { state: { redirectTo: "/recommendations" } });
+                  return;
+                }
+                setActiveTab(tab.id as any);
+              }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold whitespace-nowrap transition-all ${
                 isActive
                   ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20 font-bold"

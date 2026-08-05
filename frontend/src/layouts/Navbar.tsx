@@ -77,25 +77,35 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* User Profile Menu Dropdown */}
         <div className="relative">
-          <button
-            onClick={() => setProfileOpen(!profileOpen)}
-            className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-800/80 transition-colors border border-transparent hover:border-slate-700/60"
-          >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-md shadow-emerald-500/10">
-              <div className="w-full h-full bg-slate-950 dark:bg-slate-950 light:bg-white rounded-[6px] flex items-center justify-center font-bold text-xs text-emerald-400">
-                {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+          {!user ? (
+            <Link
+              to="/login"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 transition-all shadow-md shadow-emerald-500/15 cursor-pointer"
+            >
+              <UserIcon className="w-4 h-4 text-slate-950" />
+              <span>Sign In</span>
+            </Link>
+          ) : (
+            <button
+              onClick={() => setProfileOpen(!profileOpen)}
+              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-800/80 transition-colors border border-transparent hover:border-slate-700/60"
+            >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-md shadow-emerald-500/10">
+                <div className="w-full h-full bg-slate-950 dark:bg-slate-950 light:bg-white rounded-[6px] flex items-center justify-center font-bold text-xs text-emerald-400">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </div>
               </div>
-            </div>
-            <div className="hidden lg:flex flex-col text-left">
-              <span className="text-xs font-semibold text-slate-100 dark:text-slate-100 light:text-slate-900 leading-tight">
-                {user?.name || "User Account"}
-              </span>
-              <span className="text-[10px] text-emerald-400 font-medium">
-                {user?.role || "Investor"}
-              </span>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-          </button>
+              <div className="hidden lg:flex flex-col text-left">
+                <span className="text-xs font-semibold text-slate-100 dark:text-slate-100 light:text-slate-900 leading-tight">
+                  {user?.name || "User Account"}
+                </span>
+                <span className="text-[10px] text-emerald-400 font-medium">
+                  {user?.role || "Investor"}
+                </span>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          )}
 
           {/* Dropdown Menu */}
           <AnimatePresence>

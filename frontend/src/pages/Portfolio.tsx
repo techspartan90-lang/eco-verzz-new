@@ -34,6 +34,8 @@ import {
   usePortfolioMutations,
 } from "../hooks/usePortfolio";
 import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 // Initial mock fallback holdings if backend DB is empty
 const initialHoldingsData: Holding[] = [
@@ -131,9 +133,22 @@ const initialTransactionsData: TransactionRecord[] = [
 ];
 
 export const PortfolioPage: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: portfolioList } = usePortfolios();
   const activePortfolio = portfolioList && portfolioList.length > 0 ? portfolioList[0] : null;
   const portfolioId = activePortfolio?.id;
+
+  const requireAuth = (actionDescription: string): boolean => {
+    if (!user) {
+      toast.error("Authentication Required", {
+        description: `Please sign in to ${actionDescription}.`,
+      });
+      navigate("/login", { state: { redirectTo: "/portfolio" } });
+      return false;
+    }
+    return true;
+  };
 
   const { data: dbHoldings, refetch: refetchHoldings } = useHoldings(portfolioId);
   const { data: dbTransactions, refetch: refetchTransactions } = useTransactions(portfolioId);
@@ -184,6 +199,7 @@ export const PortfolioPage: React.FC = () => {
 
   // Handlers for holdings CRUD
   const handleAddHolding = (data: any) => {
+    if (!requireAuth("add assets to your portfolio")) return;
     if (portfolioId) {
       addHolding.mutate(data);
     } else {
@@ -209,6 +225,7 @@ export const PortfolioPage: React.FC = () => {
   };
 
   const handleEditHolding = (id: string, data: any) => {
+    if (!requireAuth("modify portfolio holdings")) return;
     if (portfolioId) {
       updateHolding.mutate({ holdingId: id, data });
     } else {
@@ -241,6 +258,7 @@ export const PortfolioPage: React.FC = () => {
   };
 
   const handleDeleteHolding = (id: string) => {
+    if (!requireAuth("delete holdings from your portfolio")) return;
     if (portfolioId) {
       deleteHolding.mutate(id);
     } else {
@@ -250,6 +268,7 @@ export const PortfolioPage: React.FC = () => {
   };
 
   const handleTransactionAction = (type: "BUY" | "SELL", holding: Holding) => {
+    if (!requireAuth(`execute ${type.toLowerCase()} transactions`)) return;
     const unitsAmount = type === "BUY" ? 50 : Math.min(holding.units, 50);
     const amount = round(unitsAmount * holding.currentNav, 2);
 
@@ -313,6 +332,7 @@ export const PortfolioPage: React.FC = () => {
 
   // Watchlist import trigger
   const handleImportFromWatchlist = () => {
+    if (!requireAuth("import funds from your watchlist")) return;
     const watchlistFund: Holding = {
       id: "h-" + Date.now(),
       fundName: "Sustainable Water & Waste Equity",
@@ -338,6 +358,7 @@ export const PortfolioPage: React.FC = () => {
   };
 
   const handleCsvImported = (parsed: any[]) => {
+    if (!requireAuth("import CSV portfolio records")) return;
     parsed.forEach((h) => handleAddHolding(h));
   };
 
@@ -372,7 +393,10 @@ export const PortfolioPage: React.FC = () => {
             <span>Add from Watchlist</span>
           </button>
           <button
-            onClick={() => setImportExportModalOpen(true)}
+            onClick={() => {
+              if (!requireAuth("import or export portfolio data")) return;
+              setImportExportModalOpen(true);
+            }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
           >
             <Upload className="w-3.5 h-3.5 text-emerald-400" />
@@ -380,6 +404,7 @@ export const PortfolioPage: React.FC = () => {
           </button>
           <button
             onClick={() => {
+              if (!requireAuth("sync live portfolio data")) return;
               refetchHoldings();
               refetchTransactions();
               toast.success("Portfolio Data Synchronized", { description: "FastAPI database metrics revalidated." });

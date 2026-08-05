@@ -206,7 +206,7 @@ export const EcoVerzzWebsite: React.FC<EcoVerzzWebsiteProps> = ({ onLaunchApp, p
                   Register
                 </button>
                 <button
-                  onClick={() => navigate("/login")}
+                  onClick={() => onLaunchApp ? onLaunchApp() : navigate("/dashboard")}
                   className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 hover:shadow-xl hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-emerald-500/10 flex items-center gap-2"
                 >
                   <Sparkles className="w-4 h-4 text-slate-950" /> Launch Platform

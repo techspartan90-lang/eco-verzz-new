@@ -204,7 +204,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* User Profile Footer Card */}
       <div className="p-3 border-t border-slate-800/80 dark:border-slate-800/80 light:border-slate-200">
-        {!collapsed ? (
+        {!user ? (
+          !collapsed ? (
+            <NavLink
+              to="/login"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 hover:from-emerald-400 hover:to-teal-500 font-bold text-xs shadow-md shadow-emerald-500/10 transition-all cursor-pointer"
+            >
+              <User className="w-4 h-4 shrink-0" />
+              <span>Sign In / Register</span>
+            </NavLink>
+          ) : (
+            <NavLink
+              to="/login"
+              className="w-full flex items-center justify-center py-2.5 rounded-xl bg-slate-800/60 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 border border-slate-800 transition-all cursor-pointer"
+              title="Sign In / Register"
+            >
+              <User className="w-5 h-5 shrink-0" />
+            </NavLink>
+          )
+        ) : !collapsed ? (
           <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 dark:bg-slate-950/60 light:bg-slate-100 border border-slate-800 dark:border-slate-800 light:border-slate-300">
             <div className="flex items-center gap-2.5 overflow-hidden">
               <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">

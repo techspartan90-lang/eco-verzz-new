@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { DashboardCard } from "../components/DashboardCard";
 import { PortfolioGrowthChart } from "../components/Charts/PortfolioGrowthChart";
 import { AssetAllocationChart } from "../components/Charts/AssetAllocationChart";
@@ -30,6 +31,7 @@ import {
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedFund, setSelectedFund] = useState("EcoVerzz ESG Climate Leaders");
   const [investmentAmount, setInvestmentAmount] = useState("10000");
@@ -69,7 +71,16 @@ export const DashboardPage: React.FC = () => {
 
           <div className="flex items-center gap-3 shrink-0">
             <button
-              onClick={() => setAddModalOpen(true)}
+              onClick={() => {
+                if (!user) {
+                  toast.error("Authentication Required", {
+                    description: "Please sign in to place investment orders.",
+                  });
+                  navigate("/login", { state: { redirectTo: "/dashboard" } });
+                  return;
+                }
+                setAddModalOpen(true);
+              }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20"
             >
               <PlusCircle className="w-4 h-4" />
@@ -81,7 +92,16 @@ export const DashboardPage: React.FC = () => {
 
       {/* Quick Actions Panel */}
       <QuickActionsPanel
-        onAddInvestment={() => setAddModalOpen(true)}
+        onAddInvestment={() => {
+          if (!user) {
+            toast.error("Authentication Required", {
+              description: "Please sign in to place investment orders.",
+            });
+            navigate("/login", { state: { redirectTo: "/dashboard" } });
+            return;
+          }
+          setAddModalOpen(true);
+        }}
       />
 
       {/* 8 KPI Dashboard Cards Grid */}
